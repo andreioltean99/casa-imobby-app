@@ -1,0 +1,260 @@
+@import 'tailwindcss';
+
+@import 'tw-animate-css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+    --font-sans:
+        'Montserrat', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+
+    --font-brand: 'Dancing Script', ui-serif, Georgia, serif;
+
+    --color-brand: #1d5e9b;
+    --color-brand-accent: #4ca828;
+    --color-brand-soft: #e8f2fa;
+    --color-brand-accent-soft: #ecfdf5;
+
+    --radius-lg: var(--radius);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-sm: calc(var(--radius) - 4px);
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: #1d5e9b;
+    --primary-foreground: #ffffff;
+    --secondary: #e8f2fa;
+    --secondary-foreground: #164574;
+    --muted: oklch(0.97 0.01 240);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: #ecfdf5;
+    --accent-foreground: #166534;
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0.01 240);
+    --input: oklch(0.922 0.01 240);
+    --ring: #1d5e9b;
+    --chart-1: #1d5e9b;
+    --chart-2: #4ca828;
+    --chart-3: oklch(0.398 0.07 227.392);
+    --chart-4: oklch(0.828 0.189 84.429);
+    --chart-5: oklch(0.769 0.188 70.08);
+    --radius: 0.625rem;
+    --sidebar: oklch(0.985 0.005 240);
+    --sidebar-foreground: oklch(0.2 0.04 250);
+    --sidebar-primary: #1d5e9b;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #e8f2fa;
+    --sidebar-accent-foreground: #164574;
+    --sidebar-border: oklch(0.91 0.01 240);
+    --sidebar-ring: #1d5e9b;
+}
+
+.dark {
+    --background: oklch(0.16 0.02 250);
+    --foreground: oklch(0.97 0.01 250);
+    --card: oklch(0.18 0.02 250);
+    --card-foreground: oklch(0.97 0.01 250);
+    --popover: oklch(0.18 0.02 250);
+    --popover-foreground: oklch(0.97 0.01 250);
+    --primary: #4a8fd4;
+    --primary-foreground: #0c1929;
+    --secondary: oklch(0.26 0.04 250);
+    --secondary-foreground: oklch(0.92 0.02 250);
+    --muted: oklch(0.26 0.03 250);
+    --muted-foreground: oklch(0.72 0.02 250);
+    --accent: oklch(0.28 0.06 145);
+    --accent-foreground: oklch(0.93 0.05 145);
+    --destructive: oklch(0.396 0.141 25.723);
+    --destructive-foreground: oklch(0.637 0.237 25.331);
+    --border: oklch(0.3 0.03 250);
+    --input: oklch(0.3 0.03 250);
+    --ring: #4a8fd4;
+    --chart-1: oklch(0.6 0.12 250);
+    --chart-2: oklch(0.65 0.14 145);
+    --chart-3: oklch(0.769 0.188 70.08);
+    --chart-4: oklch(0.627 0.265 303.9);
+    --chart-5: oklch(0.645 0.246 16.439);
+    --sidebar: oklch(0.17 0.03 250);
+    --sidebar-foreground: oklch(0.96 0.01 250);
+    --sidebar-primary: #4a8fd4;
+    --sidebar-primary-foreground: #0c1929;
+    --sidebar-accent: oklch(0.24 0.04 250);
+    --sidebar-accent-foreground: oklch(0.96 0.01 250);
+    --sidebar-border: oklch(0.28 0.03 250);
+    --sidebar-ring: #4a8fd4;
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground font-sans;
+    }
+}
+
+/* Tiny editor: show list bullets/numbers (overrides preflight) */
+.tiny-editor-content ul {
+    list-style-type: disc;
+    list-style-position: outside;
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+}
+.tiny-editor-content ol {
+    list-style-type: decimal;
+    list-style-position: outside;
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+}
+.tiny-editor-content li {
+    display: list-item;
+    margin-left: 0;
+}
+
+/* Let image alignment (left/center/right) work: preflight sets img to display:block */
+.tiny-editor-content img {
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Public pages (e.g. terms): respect saved image alignment from tiny editor */
+.prose [style*="text-align"] img {
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+}
+
+@keyframes testimonial-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes testimonial-card-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes mobile-header-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes mobile-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes mobile-card-pop {
+    0% {
+        opacity: 0;
+        transform: translateY(22px) scale(0.96);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.animate-mobile-header-in {
+    animation: mobile-header-in 0.35s ease-out both;
+}
+
+.animate-mobile-fade-up {
+    animation: mobile-fade-up 0.65s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.animate-mobile-fade-up-delayed {
+    animation: mobile-fade-up 0.72s cubic-bezier(0.22, 0.61, 0.36, 1) 0.08s both;
+}
+
+.animate-mobile-fade-up-later {
+    animation: mobile-fade-up 0.78s cubic-bezier(0.22, 0.61, 0.36, 1) 0.14s both;
+}
+
+/* Longhand + delay via custom property avoids mixing `animation` shorthand with inline animationDelay (React warning). */
+.animate-mobile-card-pop {
+    animation-name: mobile-card-pop;
+    animation-duration: 0.65s;
+    animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+    animation-fill-mode: both;
+    animation-delay: var(--mobile-card-stagger, 0ms);
+}

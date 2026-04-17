@@ -1,0 +1,92 @@
+services:
+  app:
+    build:
+      context: .
+    container_name: casa-imobby-app-prod
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_URL: ${APP_URL:-http://localhost}
+      DB_CONNECTION: ${DB_CONNECTION:-mysql}
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${APP_DB_PORT:-3306}
+      DB_DATABASE: ${DB_DATABASE:-casa_imobby}
+      DB_USERNAME: ${DB_USERNAME:-casa_imobby}
+      DB_PASSWORD: ${DB_PASSWORD:-casa_imobby}
+      # Force Laravel to use built assets, not Vite dev server
+      VITE_DEV_SERVER_URL: ""
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: >
+      bash -lc "
+        set -e;
+        echo '==> Composer install...' && composer install --no-dev --optimize-autoloader &&
+        echo '==> .env / key...' && ( [ -f .env ] || cp .env.example .env ) && php artisan key:generate --force &&
+        echo '==> Fix permissions on storage and cache...' && chown -R www-data:www-data storage bootstrap/cache && chmod -R 775 storage bootstrap/cache &&
+        echo '==> Waiting for database connectivity...' &&
+        export MYSQL_PWD=\"$$DB_PASSWORD\" &&
+        for i in $(seq 1 60); do
+          mysqladmin ping -h\"$$DB_HOST\" -P\"$$DB_PORT\" -u\"$$DB_USERNAME\" --silent && break;
+          sleep 2;
+        done &&
+        mysqladmin ping -h\"$$DB_HOST\" -P\"$$DB_PORT\" -u\"$$DB_USERNAME\" --silent &&
+        echo '==> Sync migration state for existing tables...' &&
+        mysql -h\"$$DB_HOST\" -P\"$$DB_PORT\" -u\"$$DB_USERNAME\" \"$$DB_DATABASE\" -e \"CREATE TABLE IF NOT EXISTS migrations (id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, migration VARCHAR(255) NOT NULL, batch INT NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\" &&
+        mysql -h\"$$DB_HOST\" -P\"$$DB_PORT\" -u\"$$DB_USERNAME\" \"$$DB_DATABASE\" -e \"INSERT INTO migrations (migration, batch) SELECT '0000_00_00_000000_create_app_schema', 1 FROM DUAL WHERE EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'sessions') AND NOT EXISTS (SELECT 1 FROM migrations WHERE migration = '0000_00_00_000000_create_app_schema');\" &&
+        echo '==> Migrate...' && php artisan migrate --force &&
+        echo '==> Wayfinder generate...' && php artisan wayfinder:generate --with-form &&
+        echo '==> Storage link...' && ( [ -e public/storage ] || php artisan storage:link ) &&
+        echo '==> npm install...' && CI=1 npm install --prefer-offline --no-audit &&
+        echo '==> npm run build...' && CI=1 npm run build &&
+        rm -f public/hot public/build/hot &&
+        echo '==> Laravel cache...' && php artisan config:clear && php artisan config:cache && php artisan route:cache && php artisan view:cache &&
+        echo '==> Starting PHP-FPM...' && exec php-fpm
+      "
+    expose:
+      - "9000"
+    healthcheck:
+      test: ["CMD-SHELL", "php -r 'exit(@fsockopen(\"127.0.0.1\", 9000) ? 0 : 1);'"]
+      interval: 5s
+      timeout: 3s
+      retries: 120
+      start_period: 10m
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: casa-imobby-nginx-prod
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+  mysql:
+    image: mysql:8.4
+    container_name: casa-imobby-mysql-prod
+    restart: unless-stopped
+    command: ["mysqld", "--pid-file=/var/lib/mysql/mysqld.pid"]
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: casa_imobby
+      MYSQL_USER: casa_imobby
+      MYSQL_PASSWORD: casa_imobby
+    ports:
+      - "${MYSQL_HOST_PORT:-3307}:3306"
+    volumes:
+      - mysql_data_prod:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$$MYSQL_ROOT_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data_prod:
+
