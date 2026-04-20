@@ -10,6 +10,7 @@ export default function PublicNotFound() {
 
     const isEnglish = (locale ?? 'ro') === 'en';
     const tBrand = translations?.brand ?? {};
+    const tNav = translations?.nav ?? {};
 
     return (
         <>
@@ -42,7 +43,7 @@ export default function PublicNotFound() {
                                 href="/portfolio"
                                 className="inline-flex items-center rounded-full border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"
                             >
-                                {isEnglish ? 'Portfolio' : 'Portofoliu'}
+                                {tNav.portfolio ?? (isEnglish ? 'Units' : 'Unități')}
                             </Link>
                         </div>
                     </section>

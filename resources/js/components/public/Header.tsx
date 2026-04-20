@@ -12,11 +12,12 @@ export function Header() {
     };
     const tBrand = translations?.brand ?? {};
     const currentPath = page.url.split('?')[0] || '/';
-    const sectionHref = (section: 'portfolio' | 'about' | 'contact') => {
+    const sectionHref = (section: 'units' | 'about' | 'contact') => {
         if (section === 'contact') {
             return '/contact';
         }
-        return currentPath === '/' ? `#${section}` : `/#${section}`;
+        const hash = section === 'units' ? 'units' : section;
+        return currentPath === '/' ? `#${hash}` : `/#${hash}`;
     };
 
     const current = locale ?? 'en';
@@ -69,8 +70,8 @@ export function Header() {
                 </Link>
 
                 <nav className="hidden items-center gap-6 text-sm font-medium text-muted-foreground sm:flex">
-                    <a href={sectionHref('portfolio')} className="transition-colors hover:text-brand">
-                        {translations?.nav?.portfolio ?? 'Portfolio'}
+                    <a href={sectionHref('units')} className="transition-colors hover:text-brand">
+                        {translations?.nav?.portfolio ?? 'Units'}
                     </a>
                     <a href={sectionHref('about')} className="transition-colors hover:text-brand">
                         {translations?.nav?.about ?? 'About us'}
@@ -129,8 +130,8 @@ export function Header() {
                 </div>
 
                 <nav className="flex items-center gap-1 overflow-x-auto pb-0 text-[10px] font-medium text-muted-foreground sm:hidden">
-                    <a href={sectionHref('portfolio')} className="whitespace-nowrap rounded-full border border-border/70 bg-background px-2 py-1 leading-none hover:text-brand">
-                        {translations?.nav?.portfolio ?? 'Portfolio'}
+                    <a href={sectionHref('units')} className="whitespace-nowrap rounded-full border border-border/70 bg-background px-2 py-1 leading-none hover:text-brand">
+                        {translations?.nav?.portfolio ?? 'Units'}
                     </a>
                     <a href={sectionHref('about')} className="whitespace-nowrap rounded-full border border-border/70 bg-background px-2 py-1 leading-none hover:text-brand">
                         {translations?.nav?.about ?? 'About us'}

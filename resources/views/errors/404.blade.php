@@ -207,7 +207,7 @@
             <div class="actions">
                 <a class="btn btn-primary" href="{{ url('/') }}">{{ $isEnglish ? 'Home' : 'Acasa' }}</a>
                 <a class="btn btn-secondary" href="{{ url('/services') }}">{{ $isEnglish ? 'Services' : 'Servicii' }}</a>
-                <a class="btn btn-secondary" href="{{ url('/portfolio') }}">{{ $isEnglish ? 'Portfolio' : 'Portofoliu' }}</a>
+                <a class="btn btn-secondary" href="{{ url('/portfolio') }}">{{ $isEnglish ? 'Units' : 'Unități' }}</a>
             </div>
         </section>
     </main>

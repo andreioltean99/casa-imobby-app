@@ -89,7 +89,7 @@ export function PortfolioSection({ portfolioItems, showViewAll = true }: Props) 
     return (
         <section
             ref={sectionRef}
-            id="portfolio"
+            id="units"
             className={`space-y-6 transition-opacity duration-500 ${isVisible ? 'animate-mobile-fade-up' : ''}`}
         >
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -105,7 +105,7 @@ export function PortfolioSection({ portfolioItems, showViewAll = true }: Props) 
                 {showViewAll && (
                     <Button asChild variant="outline" size="sm">
                         <a href="/portfolio">
-                            {tPortfolio.view_all ?? 'View full portfolio'}
+                            {tPortfolio.view_all ?? 'View full unit list'}
                         </a>
                     </Button>
                 )}
@@ -139,7 +139,7 @@ export function PortfolioSection({ portfolioItems, showViewAll = true }: Props) 
                                 )}
                                 <div className="space-y-1">
                                     <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                                        Project #{index + 1}
+                                        {(tPortfolio.list_item_prefix ?? 'Unit') + ' #' + (index + 1)}
                                     </p>
                                     <h3 className="text-sm font-semibold">{project.title}</h3>
                                     {(project.short_description || project.description) && (
@@ -166,9 +166,10 @@ export function PortfolioSection({ portfolioItems, showViewAll = true }: Props) 
                         </Card>
                     );
 
-                    const projectHref = (project.slug && project.slug.trim().length > 0)
-                        ? `/portfolio/${project.slug}`
-                        : '/portfolio';
+                    const projectHref =
+                        project.slug && project.slug.trim().length > 0
+                            ? `/portfolio/${project.slug}`
+                            : `/portfolio/${project.id}`;
 
                     return (
                         <Link key={project.id} href={projectHref} className="block h-full cursor-pointer">

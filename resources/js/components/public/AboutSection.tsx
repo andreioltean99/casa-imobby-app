@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
 export type AboutData = {
@@ -46,9 +47,42 @@ type Props = {
 };
 
 export function AboutSection({ about, aboutItems, principles }: Props) {
-    const a = about ?? defaultAbout;
-    const itemList = aboutItems && aboutItems.length > 0 ? aboutItems : defaultAboutItems;
-    const principleList = principles && principles.length > 0 ? principles : defaultPrinciples;
+    const { translations } = usePage().props as { translations?: Record<string, any> };
+    const tAbout = translations?.about_page as
+        | {
+              title?: string;
+              body?: string;
+              principles_heading?: string;
+              items?: { label: string; text: string }[];
+              principles?: string[];
+          }
+        | undefined;
+
+    const a =
+        about ??
+        ({
+            id: 0,
+            title: tAbout?.title ?? defaultAbout.title,
+            body: tAbout?.body ?? defaultAbout.body,
+            principles_heading: tAbout?.principles_heading ?? defaultAbout.principles_heading,
+        } as NonNullable<AboutData>);
+
+    const itemList =
+        aboutItems && aboutItems.length > 0
+            ? aboutItems
+            : (tAbout?.items?.map((row, idx) => ({
+                  id: idx,
+                  label: row.label,
+                  text: row.text,
+              })) ?? defaultAboutItems);
+
+    const principleList =
+        principles && principles.length > 0
+            ? principles
+            : (tAbout?.principles?.map((text, idx) => ({
+                  id: idx,
+                  text,
+              })) ?? defaultPrinciples);
     const bodyParagraphs = a.body.split(/\n\n+/).filter(Boolean);
     const sectionRef = useRef<HTMLElement | null>(null);
     const lastScrollYRef = useRef(0);

@@ -15,5 +15,6 @@ class DatabaseSeeder extends Seeder
     {
         // Default admin user used by blog admin authorization logic.
         $this->call(DefaultUserSeeder::class);
+        $this->call(DemoPortfolioSeeder::class);
     }
 }

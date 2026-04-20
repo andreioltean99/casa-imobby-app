@@ -258,3 +258,10 @@
     animation-fill-mode: both;
     animation-delay: var(--mobile-card-stagger, 0ms);
 }
+
+/* Public header is sticky from md up; hash links (#about, #units, #contact) need offset so titles stay visible. */
+@media (min-width: 768px) {
+    html {
+        scroll-padding-top: 6.75rem;
+    }
+}

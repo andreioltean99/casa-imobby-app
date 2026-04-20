@@ -11,12 +11,17 @@ type GalleryImage = {
     sort_order: number | null;
 };
 
+type SpecRow = { label: string; value: string };
+
 type PortfolioItem = {
     id: number;
     title: string;
     slug?: string;
     short_description?: string | null;
     description: string | null;
+    listing_specs?: SpecRow[] | null;
+    external_listing_ref?: string | null;
+    listing_pdf_path?: string | null;
     image_path: string | null;
     date: string | null;
     duration: string | null;
@@ -24,6 +29,16 @@ type PortfolioItem = {
     sort_order: number | null;
     gallery?: GalleryImage[];
 };
+
+function initialSpecRows(listing_specs: unknown): SpecRow[] {
+    if (!Array.isArray(listing_specs) || listing_specs.length === 0) {
+        return [{ label: '', value: '' }];
+    }
+    return listing_specs.map((row) => ({
+        label: typeof row === 'object' && row && 'label' in row ? String((row as { label: unknown }).label ?? '') : '',
+        value: typeof row === 'object' && row && 'value' in row ? String((row as { value: unknown }).value ?? '') : '',
+    }));
+}
 
 type Props = {
     portfolioItem: PortfolioItem;
@@ -45,6 +60,8 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
         },
     ];
 
+    const [specRows, setSpecRows] = useState<SpecRow[]>(() => initialSpecRows(portfolioItem.listing_specs));
+
     const { data, setData, put, processing, errors, delete: destroy } = useForm<{
         title: string;
         short_description: string;
@@ -53,7 +70,9 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
         duration: string;
         is_published: boolean;
         sort_order: string;
+        external_listing_ref: string;
         image: File | null;
+        listing_pdf: File | null;
     }>({
         title: portfolioItem.title ?? '',
         short_description: portfolioItem.short_description ?? '',
@@ -65,7 +84,9 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
             portfolioItem.sort_order != null
                 ? String(portfolioItem.sort_order)
                 : '',
+        external_listing_ref: portfolioItem.external_listing_ref ?? '',
         image: null,
+        listing_pdf: null,
     });
 
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -82,8 +103,15 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
+        const specsPayload = specRows
+            .map((r) => ({ label: r.label.trim(), value: r.value.trim() }))
+            .filter((r) => r.label || r.value);
         put(`/dashboard/portfolio/${portfolioItem.id}`, {
             forceFormData: true,
+            transform: (form) => ({
+                ...form,
+                listing_specs_json: JSON.stringify(specsPayload),
+            }),
         });
     };
 
@@ -215,6 +243,112 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
                             />
                             {errors.description && (
                                 <p className="text-xs text-red-500">{errors.description}</p>
+                            )}
+                        </div>
+                        <div className="space-y-2 rounded-md border border-sidebar-border/70 bg-muted/20 p-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <label className="text-xs font-medium">Listing characteristics</label>
+                                <button
+                                    type="button"
+                                    className="text-xs font-medium text-primary hover:underline"
+                                    onClick={() => setSpecRows((rows) => [...rows, { label: '', value: '' }])}
+                                >
+                                    Add row
+                                </button>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground">
+                                Label and value pairs (e.g. &quot;Nr. camere&quot; / &quot;2&quot;) shown in the public
+                                &quot;Characteristics&quot; section.
+                            </p>
+                            <div className="space-y-2">
+                                {specRows.map((row, index) => (
+                                    <div key={index} className="flex flex-wrap items-start gap-2">
+                                        <input
+                                            type="text"
+                                            value={row.label}
+                                            onChange={(e) =>
+                                                setSpecRows((rows) =>
+                                                    rows.map((r, i) =>
+                                                        i === index ? { ...r, label: e.target.value } : r,
+                                                    ),
+                                                )
+                                            }
+                                            placeholder="Label"
+                                            className="h-9 min-w-[8rem] flex-1 rounded-md border border-sidebar-border bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={row.value}
+                                            onChange={(e) =>
+                                                setSpecRows((rows) =>
+                                                    rows.map((r, i) =>
+                                                        i === index ? { ...r, value: e.target.value } : r,
+                                                    ),
+                                                )
+                                            }
+                                            placeholder="Value"
+                                            className="h-9 min-w-[8rem] flex-1 rounded-md border border-sidebar-border bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                        />
+                                        <button
+                                            type="button"
+                                            disabled={specRows.length <= 1}
+                                            onClick={() =>
+                                                setSpecRows((rows) => rows.filter((_, i) => i !== index))
+                                            }
+                                            className="h-9 shrink-0 rounded-md border border-sidebar-border px-2 text-xs text-muted-foreground hover:bg-muted disabled:opacity-40"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                            {errors.listing_specs_json && (
+                                <p className="text-xs text-red-500">{errors.listing_specs_json}</p>
+                            )}
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-medium" htmlFor="external_listing_ref">
+                                External offer ID (optional)
+                            </label>
+                            <input
+                                id="external_listing_ref"
+                                type="text"
+                                value={data.external_listing_ref}
+                                onChange={(e) => setData('external_listing_ref', e.target.value)}
+                                placeholder="e.g. P169884"
+                                className="h-9 w-full max-w-md rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            />
+                            {errors.external_listing_ref && (
+                                <p className="text-xs text-red-500">{errors.external_listing_ref}</p>
+                            )}
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-medium" htmlFor="listing_pdf">
+                                Listing PDF (optional)
+                            </label>
+                            <input
+                                id="listing_pdf"
+                                type="file"
+                                accept="application/pdf"
+                                onChange={(e) => setData('listing_pdf', e.target.files?.[0] ?? null)}
+                                className="block w-full text-xs text-muted-foreground file:mr-2 file:rounded-md file:border file:border-sidebar-border file:bg-muted file:px-2 file:py-1 file:text-xs file:font-medium file:text-foreground hover:file:bg-muted/80"
+                            />
+                            {portfolioItem.listing_pdf_path && !data.listing_pdf ? (
+                                <p className="text-xs text-muted-foreground">
+                                    Current:{' '}
+                                    <a
+                                        href={`/storage/${portfolioItem.listing_pdf_path}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="font-medium text-primary hover:underline"
+                                    >
+                                        View PDF
+                                    </a>{' '}
+                                    — upload a new file to replace.
+                                </p>
+                            ) : null}
+                            {errors.listing_pdf && (
+                                <p className="text-xs text-red-500">{errors.listing_pdf}</p>
                             )}
                         </div>
                         <div className="grid gap-4 sm:grid-cols-2">
