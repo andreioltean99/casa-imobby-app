@@ -78,7 +78,7 @@ services:
       MYSQL_USER: casa_imobby
       MYSQL_PASSWORD: casa_imobby
     ports:
-      - "${MYSQL_HOST_PORT:-3307}:3306"
+      - "${MYSQL_HOST_PORT:-3310}:3306"
     volumes:
       - mysql_data_prod:/var/lib/mysql
     healthcheck:
