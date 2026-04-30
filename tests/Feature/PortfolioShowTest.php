@@ -52,6 +52,31 @@ class PortfolioShowTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('public/portfolio-project')
                 ->where('portfolioItem.listing_specs.0.label', 'Nr. camere')
-                ->where('portfolioItem.listing_specs.0.value', '2'));
+                ->where('portfolioItem.listing_specs.0.value', '2')
+                ->where('portfolioPdfUrl', route('portfolio.pdf', ['identifier' => $item->slug]))
+                ->where(
+                    'portfolioPriceAlertUrl',
+                    route('portfolio.price-alerts.store', ['identifier' => $item->slug]),
+                ));
+    }
+
+    public function test_portfolio_show_includes_external_portal_urls_on_inertia_props(): void
+    {
+        $item = PortfolioItem::factory()->create([
+            'slug' => 'portals-unit',
+            'locale' => 'ro',
+            'is_published' => true,
+            'external_storia_url' => 'https://www.storia.ro/oferta/example',
+            'external_imobiliare_url' => 'https://www.imobiliare.ro/oferta/example',
+            'external_olx_url' => 'https://www.olx.ro/d/oferta/example',
+        ]);
+
+        $this->get(route('portfolio.show', ['slug' => $item->slug]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('public/portfolio-project')
+                ->where('portfolioItem.external_storia_url', 'https://www.storia.ro/oferta/example')
+                ->where('portfolioItem.external_imobiliare_url', 'https://www.imobiliare.ro/oferta/example')
+                ->where('portfolioItem.external_olx_url', 'https://www.olx.ro/d/oferta/example'));
     }
 }

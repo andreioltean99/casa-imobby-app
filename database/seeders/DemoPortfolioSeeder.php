@@ -15,8 +15,11 @@ class DemoPortfolioSeeder extends Seeder
         PortfolioItem::query()->updateOrCreate(
             ['slug' => 'exemplu-cluj', 'locale' => 'ro'],
             [
-                'title' => 'Exemplu unitate — Cluj-Napoca',
-                'short_description' => 'Listare demonstrativă pentru dezvoltare locală.',
+                'title' => 'Apartament de închiriat — exemplu Cluj-Napoca',
+                'short_description' => 'Listare demonstrativă (categoria „Apartamente de închiriat” pe pagina principală).',
+                'listing_category' => 'apartment_rent',
+                'pinned_home' => true,
+                'pinned_home_order' => 1,
                 'listing_specs' => [
                     ['label' => 'Nr. camere', 'value' => '2'],
                     ['label' => 'Suprafață utilă', 'value' => '47 mp'],
@@ -31,28 +34,55 @@ class DemoPortfolioSeeder extends Seeder
                     ['label' => 'Anul construcției', 'value' => '2017'],
                     ['label' => 'Tip finisaj', 'value' => 'Finisat'],
                 ],
-                'external_listing_ref' => 'P169884',
+                'external_listing_ref' => null,
+                'external_storia_url' => 'https://www.storia.ro/',
+                'external_imobiliare_url' => 'https://www.imobiliare.ro/',
+                'external_olx_url' => 'https://www.olx.ro/',
                 'description' => <<<'HTML'
-<p>Se oferă spre vânzare apartament modern, situat în ansamblul rezidențial Ego Residence, pe strada Lombului, Cluj-Napoca.</p>
-<p>Locuința are o suprafață utilă de 47 mp și este amplasată la etajul 4 din 6 al unui imobil dotat cu două lifturi moderne, oferind un bun echilibru între accesibilitate și confort.</p>
-<p>Compartimentarea este eficientă și include living cu bucătărie open-space, dormitor, baie și balcon.</p>
-<p>Apartamentul se vinde complet mobilat și utilat, fiind pregătit pentru mutare imediată. Electrocasnicele sunt în garanție, iar confortul este completat de aer condiționat instalat atât în living, cât și în dormitor. Finisajele sunt moderne, iar poziționarea la etaj intermediar contribuie la o eficiență termică ridicată.</p>
-<p>În preț este inclus și un loc de parcare subteran.</p>
-<p>Proprietatea beneficiază de acces facil către centrul orașului, fiind situată în apropierea stațiilor de transport în comun, magazinelor și a altor puncte de interes.</p>
+<p>Exemplu de anunț pentru închiriere — înlocuiește textul din panoul de administrare.</p>
+<p>Apartament modern, situat în ansamblul rezidențial Ego Residence, pe strada Lombului, Cluj-Napoca.</p>
+<p>Suprafață utilă 47 mp, etaj 4 din 6, imobil cu două lifturi. Living cu bucătărie open-space, dormitor, baie și balcon.</p>
+<p>Mobilat și utilat, aer condiționat în living și dormitor. Loc de parcare subteran inclus.</p>
 HTML,
                 'image_path' => null,
                 'date' => (string) now()->year,
                 'duration' => null,
+                'price' => 650,
                 'is_published' => true,
                 'sort_order' => 1,
             ],
         );
 
         PortfolioItem::query()->updateOrCreate(
+            ['slug' => 'demo-teren-cluj', 'locale' => 'ro'],
+            [
+                'title' => 'Teren intravilan — exemplu (demo)',
+                'short_description' => 'Listare demonstrativă pentru secțiunea „Terenuri”.',
+                'listing_specs' => [
+                    ['label' => 'Suprafață', 'value' => '1000 mp'],
+                    ['label' => 'Localitate', 'value' => 'Cluj (exemplu)'],
+                ],
+                'description' => '<p>Înlocuiește acest text cu detaliile reale ale terenului.</p>',
+                'image_path' => null,
+                'date' => (string) now()->year,
+                'duration' => null,
+                'price' => 95000,
+                'listing_category' => 'land_sale',
+                'pinned_home' => false,
+                'pinned_home_order' => null,
+                'is_published' => true,
+                'sort_order' => 3,
+            ],
+        );
+
+        PortfolioItem::query()->updateOrCreate(
             ['slug' => 'sample-listing', 'locale' => 'en'],
             [
-                'title' => 'Sample listing — Cluj-Napoca',
-                'short_description' => 'Demo entry for local development.',
+                'title' => 'House for sale — sample (demo)',
+                'short_description' => 'Demo entry mapped to “Houses for sale” on the home page.',
+                'listing_category' => 'case_sale',
+                'pinned_home' => false,
+                'pinned_home_order' => null,
                 'listing_specs' => [
                     ['label' => 'Rooms', 'value' => '2'],
                     ['label' => 'Usable area', 'value' => '47 sqm'],
@@ -65,10 +95,14 @@ HTML,
                     ['label' => 'Year built', 'value' => '2017'],
                 ],
                 'external_listing_ref' => 'DEMO-EN-001',
+                'external_storia_url' => 'https://www.storia.ro/',
+                'external_imobiliare_url' => 'https://www.imobiliare.ro/',
+                'external_olx_url' => 'https://www.olx.ro/',
                 'description' => '<p>Replace this from the admin dashboard or publish a real listing. The characteristics table above is sample data for layout preview.</p>',
                 'image_path' => null,
                 'date' => (string) now()->year,
                 'duration' => null,
+                'price' => 120000,
                 'is_published' => true,
                 'sort_order' => 2,
             ],

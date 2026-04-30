@@ -1,7 +1,10 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
+import { useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
 import { TinyTextEditor } from '@/components/tiny-text-editor';
+import { dashboard } from '@/routes';
 
 type PageProps = {
     page: {
@@ -23,12 +26,17 @@ type PageProps = {
     };
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Landing hero', href: '/dashboard/landing-hero' },
-];
-
 export default function DashboardLandingHero({ page }: PageProps) {
+    const t = useAdminT();
+
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            { title: t('breadcrumb.homepage_hero'), href: '/dashboard/landing-hero' },
+        ],
+        [t],
+    );
+
     const { data, setData, processing, put, errors } = useForm({
         eyebrow: page.eyebrow ?? '',
         title: page.title ?? '',
@@ -48,14 +56,7 @@ export default function DashboardLandingHero({ page }: PageProps) {
 
     const { props } = usePage<{
         status?: string;
-        locale?: string;
-        availableLocales?: string[];
     }>();
-
-    const currentLocale = props.locale ?? 'en';
-    const availableLocales = props.availableLocales?.length
-        ? props.availableLocales
-        : ['en', 'ro'];
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -64,14 +65,12 @@ export default function DashboardLandingHero({ page }: PageProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Landing hero – Dashboard" />
+            <Head title={t('landing_hero.meta')} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between gap-2">
                     <div>
-                        <h1 className="text-lg font-semibold">Landing hero</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Edit the first homepage section (hero text, CTAs and “how we work” steps).
-                        </p>
+                        <h1 className="text-lg font-semibold">{t('landing_hero.title')}</h1>
+                        <p className="text-sm text-muted-foreground">{t('landing_hero.intro')}</p>
                     </div>
                     <div className="flex items-center gap-2">
                         {props.status && (
@@ -79,25 +78,6 @@ export default function DashboardLandingHero({ page }: PageProps) {
                                 {props.status}
                             </div>
                         )}
-                        <div className="flex items-center gap-1 rounded-full border border-border bg-background/80 px-1 py-0.5 text-[11px] font-medium text-muted-foreground">
-                            {availableLocales.map((code) => {
-                                const isActive = code === currentLocale;
-                                return (
-                                    <a
-                                        key={code}
-                                        href={`/lang/${code}`}
-                                        className={[
-                                            'inline-flex h-6 items-center justify-center rounded-full px-2 transition-colors',
-                                            isActive
-                                                ? 'bg-foreground text-background'
-                                                : 'hover:bg-muted hover:text-foreground',
-                                        ].join(' ')}
-                                    >
-                                        {code.toUpperCase()}
-                                    </a>
-                                );
-                            })}
-                        </div>
                     </div>
                 </div>
 
@@ -106,7 +86,7 @@ export default function DashboardLandingHero({ page }: PageProps) {
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-1">
                                 <label className="text-xs font-medium" htmlFor="eyebrow">
-                                    Eyebrow
+                                    {t('landing_hero.form.eyebrow')}
                                 </label>
                                 <input
                                     id="eyebrow"
@@ -123,7 +103,7 @@ export default function DashboardLandingHero({ page }: PageProps) {
 
                             <div className="space-y-1">
                                 <label className="text-xs font-medium" htmlFor="title">
-                                    Title
+                                    {t('landing_hero.form.main_title')}
                                 </label>
                                 <input
                                     id="title"
@@ -141,7 +121,7 @@ export default function DashboardLandingHero({ page }: PageProps) {
 
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="body">
-                                Description
+                                {t('landing_hero.form.description')}
                             </label>
                             <TinyTextEditor
                                 id="body"
@@ -157,7 +137,7 @@ export default function DashboardLandingHero({ page }: PageProps) {
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-1">
                                 <label className="text-xs font-medium" htmlFor="primary_cta">
-                                    Primary CTA
+                                    {t('landing_hero.form.primary_cta')}
                                 </label>
                                 <input
                                     id="primary_cta"
@@ -173,7 +153,7 @@ export default function DashboardLandingHero({ page }: PageProps) {
                             </div>
                             <div className="space-y-1">
                                 <label className="text-xs font-medium" htmlFor="secondary_cta">
-                                    Secondary CTA
+                                    {t('landing_hero.form.secondary_cta')}
                                 </label>
                                 <input
                                     id="secondary_cta"
@@ -194,7 +174,7 @@ export default function DashboardLandingHero({ page }: PageProps) {
                                 className="text-xs font-medium"
                                 htmlFor="end_to_end_heading"
                             >
-                                End-to-end heading
+                                {t('landing_hero.form.end_to_end_heading')}
                             </label>
                             <input
                                 id="end_to_end_heading"
@@ -215,15 +195,15 @@ export default function DashboardLandingHero({ page }: PageProps) {
 
                         <div className="space-y-3 rounded-xl border border-border/60 bg-muted/40 p-4">
                             <div className="flex items-center justify-between gap-2">
-                                <h2 className="text-sm font-semibold">End-to-end steps</h2>
-                                <div className="text-xs text-muted-foreground">1–3</div>
+                                <h2 className="text-sm font-semibold">{t('landing_hero.form.steps_heading')}</h2>
+                                <div className="text-xs text-muted-foreground">{t('landing_hero.form.steps_range')}</div>
                             </div>
 
                             <div className="space-y-3 rounded-lg border border-border/60 bg-background p-4">
-                                <h3 className="text-sm font-medium">Step 1</h3>
+                                <h3 className="text-sm font-medium">{t('landing_hero.form.step_1')}</h3>
                                 <div className="space-y-1">
                                     <label className="text-xs font-medium" htmlFor="step1_title">
-                                        Title
+                                        {t('landing_hero.form.main_title')}
                                     </label>
                                     <input
                                         id="step1_title"
@@ -236,7 +216,7 @@ export default function DashboardLandingHero({ page }: PageProps) {
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-medium" htmlFor="step1_body">
-                                        Description
+                                        {t('landing_hero.form.description')}
                                     </label>
                                     <TinyTextEditor
                                         id="step1_body"
@@ -248,10 +228,10 @@ export default function DashboardLandingHero({ page }: PageProps) {
                             </div>
 
                             <div className="space-y-3 rounded-lg border border-border/60 bg-background p-4">
-                                <h3 className="text-sm font-medium">Step 2</h3>
+                                <h3 className="text-sm font-medium">{t('landing_hero.form.step_2')}</h3>
                                 <div className="space-y-1">
                                     <label className="text-xs font-medium" htmlFor="step2_title">
-                                        Title
+                                        {t('landing_hero.form.main_title')}
                                     </label>
                                     <input
                                         id="step2_title"
@@ -264,7 +244,7 @@ export default function DashboardLandingHero({ page }: PageProps) {
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-medium" htmlFor="step2_body">
-                                        Description
+                                        {t('landing_hero.form.description')}
                                     </label>
                                     <TinyTextEditor
                                         id="step2_body"
@@ -276,10 +256,10 @@ export default function DashboardLandingHero({ page }: PageProps) {
                             </div>
 
                             <div className="space-y-3 rounded-lg border border-border/60 bg-background p-4">
-                                <h3 className="text-sm font-medium">Step 3</h3>
+                                <h3 className="text-sm font-medium">{t('landing_hero.form.step_3')}</h3>
                                 <div className="space-y-1">
                                     <label className="text-xs font-medium" htmlFor="step3_title">
-                                        Title
+                                        {t('landing_hero.form.main_title')}
                                     </label>
                                     <input
                                         id="step3_title"
@@ -292,7 +272,7 @@ export default function DashboardLandingHero({ page }: PageProps) {
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-xs font-medium" htmlFor="step3_body">
-                                        Description
+                                        {t('landing_hero.form.description')}
                                     </label>
                                     <TinyTextEditor
                                         id="step3_body"
@@ -310,7 +290,7 @@ export default function DashboardLandingHero({ page }: PageProps) {
                                 disabled={processing}
                                 className="inline-flex items-center rounded-md bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-60"
                             >
-                                Save changes
+                                {t('landing_hero.form.save')}
                             </button>
                         </div>
                     </form>
@@ -319,4 +299,3 @@ export default function DashboardLandingHero({ page }: PageProps) {
         </AppLayout>
     );
 }
-

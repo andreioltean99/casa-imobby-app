@@ -1,4 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
+import { PROPERTIES_INDEX_PATH } from '@/lib/public-properties-path';
 import { Moon, Sun } from 'lucide-react';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useEffect, useState } from 'react';
@@ -12,11 +13,14 @@ export function Header() {
     };
     const tBrand = translations?.brand ?? {};
     const currentPath = page.url.split('?')[0] || '/';
-    const sectionHref = (section: 'units' | 'about' | 'contact') => {
+    const sectionHref = (section: 'properties' | 'about' | 'contact') => {
         if (section === 'contact') {
             return '/contact';
         }
-        const hash = section === 'units' ? 'units' : section;
+        if (section === 'properties') {
+            return PROPERTIES_INDEX_PATH;
+        }
+        const hash = section === 'about' ? 'about' : section;
         return currentPath === '/' ? `#${hash}` : `/#${hash}`;
     };
 
@@ -70,8 +74,8 @@ export function Header() {
                 </Link>
 
                 <nav className="hidden items-center gap-6 text-sm font-medium text-muted-foreground sm:flex">
-                    <a href={sectionHref('units')} className="transition-colors hover:text-brand">
-                        {translations?.nav?.portfolio ?? 'Units'}
+                    <a href={sectionHref('properties')} className="transition-colors hover:text-brand">
+                        {translations?.nav?.portfolio ?? 'Properties'}
                     </a>
                     <a href={sectionHref('about')} className="transition-colors hover:text-brand">
                         {translations?.nav?.about ?? 'About us'}
@@ -130,8 +134,8 @@ export function Header() {
                 </div>
 
                 <nav className="flex items-center gap-1 overflow-x-auto pb-0 text-[10px] font-medium text-muted-foreground sm:hidden">
-                    <a href={sectionHref('units')} className="whitespace-nowrap rounded-full border border-border/70 bg-background px-2 py-1 leading-none hover:text-brand">
-                        {translations?.nav?.portfolio ?? 'Units'}
+                    <a href={sectionHref('properties')} className="whitespace-nowrap rounded-full border border-border/70 bg-background px-2 py-1 leading-none hover:text-brand">
+                        {translations?.nav?.portfolio ?? 'Properties'}
                     </a>
                     <a href={sectionHref('about')} className="whitespace-nowrap rounded-full border border-border/70 bg-background px-2 py-1 leading-none hover:text-brand">
                         {translations?.nav?.about ?? 'About us'}

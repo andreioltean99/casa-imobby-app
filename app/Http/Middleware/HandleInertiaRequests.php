@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\PortfolioListingCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Lang;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -44,6 +46,14 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'portfolioListingAdmin' => [
+                'categoryLabel' => __('website.portfolio.listing_category_label'),
+                'categoryPlaceholder' => __('website.portfolio.listing_category_placeholder'),
+                'pinnedHomeLabel' => __('website.portfolio.pinned_home_label'),
+                'pinnedHomeOrderLabel' => __('website.portfolio.pinned_home_order_label'),
+                'categoryTitles' => PortfolioListingCategory::titlesForLocale(app()->getLocale()),
+            ],
+            'admin' => Lang::get('admin'),
         ];
     }
 }

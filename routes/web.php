@@ -7,6 +7,8 @@ use App\Http\Controllers\Dashboard\LandingHeroDashboardController;
 use App\Http\Controllers\Dashboard\LegalPageDashboardController;
 use App\Http\Controllers\Dashboard\MediaUploadController;
 use App\Http\Controllers\Dashboard\PortfolioDashboardController;
+use App\Http\Controllers\Dashboard\PortfolioListingCategoryDashboardController;
+use App\Http\Controllers\Dashboard\PropertyFilterDashboardController;
 use App\Http\Controllers\Dashboard\PrincipleDashboardController;
 use App\Http\Controllers\Dashboard\TestimonialDashboardController;
 use App\Http\Controllers\Dashboard\UsersDashboardController;
@@ -16,6 +18,7 @@ use App\Http\Controllers\LeadOfferSubmissionController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PortfolioController;
+use App\Http\Controllers\PortfolioPriceAlertController;
 use App\Http\Controllers\PublicContactController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,7 +26,14 @@ Route::get('/', HomeController::class)->name('home');
 Route::post('/lead-offers', LeadOfferSubmissionController::class)
     ->middleware('throttle:15,1')
     ->name('lead-offers.store');
-Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio');
+Route::get('/proprietati', [PortfolioController::class, 'index'])->name('portfolio');
+Route::redirect('/portfolio', '/proprietati');
+Route::get('/portfolio/{identifier}/pdf', [PortfolioController::class, 'downloadPdf'])
+    ->middleware('throttle:30,1')
+    ->name('portfolio.pdf');
+Route::post('/portfolio/{identifier}/price-alerts', [PortfolioPriceAlertController::class, 'store'])
+    ->middleware('throttle:15,1')
+    ->name('portfolio.price-alerts.store');
 Route::get('/portfolio/{slug}', [PortfolioController::class, 'show'])->name('portfolio.show');
 Route::get('/terms', [LegalPageController::class, 'terms'])->name('terms');
 Route::get('/privacy', [LegalPageController::class, 'privacy'])->name('privacy');
@@ -32,6 +42,38 @@ Route::get('/contact', PublicContactController::class)->name('contact');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
+
+    Route::get('dashboard/listing-categories', [PortfolioListingCategoryDashboardController::class, 'index'])
+        ->name('dashboard.listing-categories.index');
+    Route::get('dashboard/listing-categories/create', [PortfolioListingCategoryDashboardController::class, 'create'])
+        ->name('dashboard.listing-categories.create');
+    Route::post('dashboard/listing-categories', [PortfolioListingCategoryDashboardController::class, 'store'])
+        ->name('dashboard.listing-categories.store');
+    Route::get('dashboard/listing-categories/{listingCategory}/edit', [PortfolioListingCategoryDashboardController::class, 'edit'])
+        ->name('dashboard.listing-categories.edit');
+    Route::put('dashboard/listing-categories/{listingCategory}', [PortfolioListingCategoryDashboardController::class, 'update'])
+        ->name('dashboard.listing-categories.update');
+    Route::delete('dashboard/listing-categories/{listingCategory}', [PortfolioListingCategoryDashboardController::class, 'destroy'])
+        ->name('dashboard.listing-categories.destroy');
+
+    Route::redirect('dashboard/property-filters', 'dashboard/property-characteristics');
+    Route::redirect('dashboard/property-filters/create', 'dashboard/property-characteristics/create');
+    Route::get('dashboard/property-filters/{propertyFilter}/edit', function (\App\Models\PropertyFilter $propertyFilter) {
+        return redirect()->to("/dashboard/property-characteristics/{$propertyFilter->id}/edit");
+    });
+
+    Route::get('dashboard/property-characteristics', [PropertyFilterDashboardController::class, 'index'])
+        ->name('dashboard.property-characteristics.index');
+    Route::get('dashboard/property-characteristics/create', [PropertyFilterDashboardController::class, 'create'])
+        ->name('dashboard.property-characteristics.create');
+    Route::post('dashboard/property-characteristics', [PropertyFilterDashboardController::class, 'store'])
+        ->name('dashboard.property-characteristics.store');
+    Route::get('dashboard/property-characteristics/{propertyFilter}/edit', [PropertyFilterDashboardController::class, 'edit'])
+        ->name('dashboard.property-characteristics.edit');
+    Route::put('dashboard/property-characteristics/{propertyFilter}', [PropertyFilterDashboardController::class, 'update'])
+        ->name('dashboard.property-characteristics.update');
+    Route::delete('dashboard/property-characteristics/{propertyFilter}', [PropertyFilterDashboardController::class, 'destroy'])
+        ->name('dashboard.property-characteristics.destroy');
 
     Route::get('dashboard/portfolio', [PortfolioDashboardController::class, 'index'])
         ->name('dashboard.portfolio.index');

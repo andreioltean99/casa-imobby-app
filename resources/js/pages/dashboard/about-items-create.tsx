@@ -1,25 +1,30 @@
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: dashboard() },
-    { title: 'About & Principles', href: '/dashboard/about' },
-    { title: 'Add key point', href: '/dashboard/about-items/create' },
-];
-
 export default function DashboardAboutItemCreate() {
-    const { props } = usePage<{ locale?: string; availableLocales?: string[] }>();
-    const currentLocale = props.locale ?? 'en';
-    const availableLocales = props.availableLocales?.length
-        ? props.availableLocales
-        : ['en', 'ro'];
+    const t = useAdminT();
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            {
+                title: t('about_items.breadcrumb_parent'),
+                href: '/dashboard/about',
+            },
+            {
+                title: t('breadcrumb.add_key_point'),
+                href: '/dashboard/about-items/create',
+            },
+        ],
+        [t],
+    );
 
     const { data, setData, post, processing, errors } = useForm({
         label: '',
         text: '',
-        sort_order: '',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -29,40 +34,23 @@ export default function DashboardAboutItemCreate() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Add key point – Dashboard" />
+            <Head title={t('meta.add_key_point')} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between gap-2">
                     <div>
-                        <h1 className="text-lg font-semibold">Add key point</h1>
+                        <h1 className="text-lg font-semibold">
+                            {t('about_items.create.title')}
+                        </h1>
                         <p className="text-sm text-muted-foreground">
-                            Add a key point to the About section (e.g. Vision, Values, Expertise).
+                            {t('about_items.create.intro')}
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 rounded-full border border-border bg-background/80 px-1 py-0.5 text-[11px] font-medium text-muted-foreground">
-                            {availableLocales.map((code) => {
-                                const isActive = code === currentLocale;
-                                return (
-                                    <a
-                                        key={code}
-                                        href={`/lang/${code}`}
-                                        className={[
-                                            'inline-flex h-6 items-center justify-center rounded-full px-2 transition-colors',
-                                            isActive
-                                                ? 'bg-foreground text-background'
-                                                : 'hover:bg-muted hover:text-foreground',
-                                        ].join(' ')}
-                                    >
-                                        {code.toUpperCase()}
-                                    </a>
-                                );
-                            })}
-                        </div>
                         <Link
                             href="/dashboard/about"
                             className="text-xs font-medium text-muted-foreground hover:text-foreground"
                         >
-                            Back to About & Principles
+                            {t('about_items.create.back')}
                         </Link>
                     </div>
                 </div>
@@ -71,7 +59,7 @@ export default function DashboardAboutItemCreate() {
                     <form onSubmit={submit} className="space-y-4">
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="label">
-                                Label (e.g. Vision, Values, Expertise)
+                                {t('about_items.create.label')}
                             </label>
                             <input
                                 id="label"
@@ -87,7 +75,7 @@ export default function DashboardAboutItemCreate() {
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="text">
-                                Text
+                                {t('about_items.create.text')}
                             </label>
                             <input
                                 id="text"
@@ -101,35 +89,19 @@ export default function DashboardAboutItemCreate() {
                                 <p className="text-xs text-red-500">{errors.text}</p>
                             )}
                         </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="sort_order">
-                                Sort order (optional)
-                            </label>
-                            <input
-                                id="sort_order"
-                                type="number"
-                                min={0}
-                                value={data.sort_order}
-                                onChange={(e) => setData('sort_order', e.target.value)}
-                                className="h-9 w-full max-w-[120px] rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                            />
-                            {errors.sort_order && (
-                                <p className="text-xs text-red-500">{errors.sort_order}</p>
-                            )}
-                        </div>
                         <div className="flex justify-end gap-2 pt-2">
                             <Link
                                 href="/dashboard/about"
                                 className="inline-flex items-center rounded-md border border-sidebar-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </Link>
                             <button
                                 type="submit"
                                 disabled={processing}
                                 className="inline-flex items-center rounded-md bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-60"
                             >
-                                Add key point
+                                {t('about_items.create.submit')}
                             </button>
                         </div>
                     </form>

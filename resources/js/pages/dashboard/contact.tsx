@@ -1,7 +1,10 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
+import { useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
 import { TinyTextEditor } from '@/components/tiny-text-editor';
+import { dashboard } from '@/routes';
 
 type Props = {
     page: {
@@ -19,12 +22,8 @@ type Props = {
     };
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Contact', href: '/dashboard/contact' },
-];
-
 export default function DashboardContact({ page }: Props) {
+    const t = useAdminT();
     const { data, setData, processing, put, errors } = useForm<{
         section_title: string;
         section_body: string;
@@ -49,14 +48,15 @@ export default function DashboardContact({ page }: Props) {
 
     const { props } = usePage<{
         status?: string;
-        locale?: string;
-        availableLocales?: string[];
     }>();
 
-    const currentLocale = props.locale ?? 'en';
-    const availableLocales = props.availableLocales?.length
-        ? props.availableLocales
-        : ['en', 'ro'];
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            { title: t('breadcrumb.contact_details'), href: '/dashboard/contact' },
+        ],
+        [t],
+    );
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -67,14 +67,12 @@ export default function DashboardContact({ page }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Contact – Dashboard" />
+            <Head title={t('contact.meta')} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between gap-2">
                     <div>
-                        <h1 className="text-lg font-semibold">Contact</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Update the public contact section (title, description, and details).
-                        </p>
+                        <h1 className="text-lg font-semibold">{t('contact.title')}</h1>
+                        <p className="text-sm text-muted-foreground">{t('contact.intro')}</p>
                     </div>
                     <div className="flex items-center gap-2">
                         {props.status && (
@@ -82,25 +80,6 @@ export default function DashboardContact({ page }: Props) {
                                 {props.status}
                             </div>
                         )}
-                        <div className="flex items-center gap-1 rounded-full border border-border bg-background/80 px-1 py-0.5 text-[11px] font-medium text-muted-foreground">
-                            {availableLocales.map((code) => {
-                                const isActive = code === currentLocale;
-                                return (
-                                    <a
-                                        key={code}
-                                        href={`/lang/${code}`}
-                                        className={[
-                                            'inline-flex h-6 items-center justify-center rounded-full px-2 transition-colors',
-                                            isActive
-                                                ? 'bg-foreground text-background'
-                                                : 'hover:bg-muted hover:text-foreground',
-                                        ].join(' ')}
-                                    >
-                                        {code.toUpperCase()}
-                                    </a>
-                                );
-                            })}
-                        </div>
                     </div>
                 </div>
 
@@ -108,7 +87,7 @@ export default function DashboardContact({ page }: Props) {
                     <form onSubmit={submit} className="space-y-4">
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="section_title">
-                                Section title
+                                {t('contact.form.section_title')}
                             </label>
                             <input
                                 id="section_title"
@@ -125,7 +104,7 @@ export default function DashboardContact({ page }: Props) {
 
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="section_body">
-                                Description
+                                {t('contact.form.section_body')}
                             </label>
                             <TinyTextEditor
                                 id="section_body"
@@ -140,7 +119,7 @@ export default function DashboardContact({ page }: Props) {
 
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="contact_details_title">
-                                Contact details title
+                                {t('contact.form.contact_details_title')}
                             </label>
                             <input
                                 id="contact_details_title"
@@ -157,7 +136,7 @@ export default function DashboardContact({ page }: Props) {
 
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="address">
-                                Address / location (one line or multiple lines)
+                                {t('contact.form.address')}
                             </label>
                             <textarea
                                 id="address"
@@ -172,7 +151,7 @@ export default function DashboardContact({ page }: Props) {
 
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="email">
-                                Email
+                                {t('contact.form.email')}
                             </label>
                             <input
                                 id="email"
@@ -188,7 +167,7 @@ export default function DashboardContact({ page }: Props) {
 
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="phone">
-                                Phone (displayed on the site)
+                                {t('contact.form.phone')}
                             </label>
                             <input
                                 id="phone"
@@ -203,7 +182,7 @@ export default function DashboardContact({ page }: Props) {
 
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="contact_person_name">
-                                Contact person name
+                                {t('contact.form.contact_person_name')}
                             </label>
                             <input
                                 id="contact_person_name"
@@ -219,7 +198,7 @@ export default function DashboardContact({ page }: Props) {
 
                         <div className="space-y-2">
                             <label className="text-xs font-medium" htmlFor="contact_person_photo">
-                                Contact person photo
+                                {t('contact.form.contact_person_photo')}
                             </label>
                             {page.contact_person_photo_url ? (
                                 <div className="flex items-center gap-3">
@@ -229,7 +208,7 @@ export default function DashboardContact({ page }: Props) {
                                         className="h-16 w-16 rounded-full border border-sidebar-border object-cover"
                                     />
                                     <p className="text-xs text-muted-foreground">
-                                        Current image. Choose a new file below to replace it.
+                                        {t('contact.form.current_photo_note')}
                                     </p>
                                 </div>
                             ) : null}
@@ -249,7 +228,7 @@ export default function DashboardContact({ page }: Props) {
 
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="map_placeholder">
-                                Map placeholder text
+                                {t('contact.form.map_placeholder')}
                             </label>
                             <input
                                 id="map_placeholder"
@@ -269,7 +248,7 @@ export default function DashboardContact({ page }: Props) {
                                 disabled={processing}
                                 className="inline-flex items-center rounded-md bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-60"
                             >
-                                Save changes
+                                {t('contact.form.save')}
                             </button>
                         </div>
                     </form>

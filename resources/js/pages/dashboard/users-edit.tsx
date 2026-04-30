@@ -1,5 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
 
@@ -13,18 +15,8 @@ type Props = {
     user: User;
 };
 
-const breadcrumbsBase: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-    },
-    {
-        title: 'Users',
-        href: '/dashboard/users',
-    },
-];
-
 export default function DashboardUsersEdit({ user }: Props) {
+    const t = useAdminT();
     const { data, setData, put, processing, errors, delete: destroy } = useForm<{
         name: string;
         email: string;
@@ -35,34 +27,36 @@ export default function DashboardUsersEdit({ user }: Props) {
         password: '',
     });
 
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            { title: t('breadcrumb.users'), href: '/dashboard/users' },
+            {
+                title: user.name,
+                href: `/dashboard/users/${user.id}/edit`,
+            },
+        ],
+        [t, user.name, user.id],
+    );
+
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         put(`/dashboard/users/${user.id}`);
     };
 
     const onDelete = () => {
-        if (!confirm('Delete this user?')) return;
+        if (!confirm(t('users.edit.delete_confirm'))) return;
         destroy(`/dashboard/users/${user.id}`);
     };
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        ...breadcrumbsBase,
-        {
-            title: user.name,
-            href: `/dashboard/users/${user.id}/edit`,
-        },
-    ];
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Edit user – ${user.name}`} />
+            <Head title={t('meta.edit_user', { name: user.name })} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between gap-2">
                     <div>
-                        <h1 className="text-lg font-semibold">Edit user</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Update name/email and optionally set a new password.
-                        </p>
+                        <h1 className="text-lg font-semibold">{t('users.edit.title')}</h1>
+                        <p className="text-sm text-muted-foreground">{t('users.edit.intro')}</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <button
@@ -71,13 +65,13 @@ export default function DashboardUsersEdit({ user }: Props) {
                             className="inline-flex items-center rounded-md border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/20"
                             disabled={processing}
                         >
-                            Delete
+                            {t('common.delete')}
                         </button>
                         <Link
                             href="/dashboard/users"
                             className="text-xs font-medium text-muted-foreground hover:text-foreground"
                         >
-                            Back to users
+                            {t('users.edit.back')}
                         </Link>
                     </div>
                 </div>
@@ -86,7 +80,7 @@ export default function DashboardUsersEdit({ user }: Props) {
                     <form onSubmit={submit} className="space-y-4">
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="name">
-                                Name
+                                {t('common.name')}
                             </label>
                             <input
                                 id="name"
@@ -103,7 +97,7 @@ export default function DashboardUsersEdit({ user }: Props) {
 
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="email">
-                                Email
+                                {t('common.email')}
                             </label>
                             <input
                                 id="email"
@@ -120,7 +114,7 @@ export default function DashboardUsersEdit({ user }: Props) {
 
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="password">
-                                New password
+                                {t('users.edit.new_password')}
                             </label>
                             <input
                                 id="password"
@@ -129,8 +123,8 @@ export default function DashboardUsersEdit({ user }: Props) {
                                 onChange={(e) =>
                                     setData('password', e.target.value)
                                 }
+                                placeholder={t('users.edit.password_optional')}
                                 className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                placeholder="Leave blank to keep current password"
                             />
                             {errors.password && (
                                 <p className="text-xs text-red-500">{errors.password}</p>
@@ -144,14 +138,14 @@ export default function DashboardUsersEdit({ user }: Props) {
                                 onClick={() => history.back()}
                                 disabled={processing}
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </button>
                             <button
                                 type="submit"
                                 disabled={processing}
                                 className="inline-flex items-center rounded-md bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-60"
                             >
-                                Save changes
+                                {t('users.edit.save')}
                             </button>
                         </div>
                     </form>
@@ -160,4 +154,3 @@ export default function DashboardUsersEdit({ user }: Props) {
         </AppLayout>
     );
 }
-

@@ -1,5 +1,7 @@
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
 
@@ -29,17 +31,15 @@ type Props = {
     principles: PrincipleRow[];
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: dashboard() },
-    { title: 'About & Principles', href: '/dashboard/about' },
-];
-
 export default function DashboardAbout({ about, aboutItems, principles }: Props) {
-    const { props } = usePage<{ locale?: string; availableLocales?: string[] }>();
-    const currentLocale = props.locale ?? 'en';
-    const availableLocales = props.availableLocales?.length
-        ? props.availableLocales
-        : ['en', 'ro'];
+    const t = useAdminT();
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            { title: t('breadcrumb.about_page'), href: '/dashboard/about' },
+        ],
+        [t],
+    );
 
     const { data, setData, put, processing, errors } = useForm({
         title: about?.title ?? 'About Casa Imobby',
@@ -53,54 +53,32 @@ export default function DashboardAbout({ about, aboutItems, principles }: Props)
     };
 
     const deleteAboutItem = (id: number) => {
-        if (!confirm('Delete this key point?')) return;
+        if (!confirm(t('about.delete_key_point_confirm'))) return;
         router.delete(`/dashboard/about-items/${id}`);
     };
 
     const deletePrinciple = (id: number) => {
-        if (!confirm('Delete this principle?')) return;
+        if (!confirm(t('about.delete_principle_confirm'))) return;
         router.delete(`/dashboard/principles/${id}`);
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="About & Principles – Dashboard" />
+            <Head title={t('about.meta')} />
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between gap-2">
                     <div>
-                        <h1 className="text-lg font-semibold">About & Principles</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Edit the About Casa Imobby section and the principles list shown on the public
-                            website.
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-1 rounded-full border border-border bg-background/80 px-1 py-0.5 text-[11px] font-medium text-muted-foreground">
-                        {availableLocales.map((code) => {
-                            const isActive = code === currentLocale;
-                            return (
-                                <a
-                                    key={code}
-                                    href={`/lang/${code}`}
-                                    className={[
-                                        'inline-flex h-6 items-center justify-center rounded-full px-2 transition-colors',
-                                        isActive
-                                            ? 'bg-foreground text-background'
-                                            : 'hover:bg-muted hover:text-foreground',
-                                    ].join(' ')}
-                                >
-                                    {code.toUpperCase()}
-                                </a>
-                            );
-                        })}
+                        <h1 className="text-lg font-semibold">{t('about.page_title')}</h1>
+                        <p className="text-sm text-muted-foreground">{t('about.page_description')}</p>
                     </div>
                 </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-6 dark:border-sidebar-border">
-                    <h2 className="mb-4 text-sm font-semibold">About Casa Imobby</h2>
+                    <h2 className="mb-4 text-sm font-semibold">{t('about.section_about')}</h2>
                     <form onSubmit={submitAbout} className="space-y-4">
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="title">
-                                Section title
+                                {t('about.section_title_label')}
                             </label>
                             <input
                                 id="title"
@@ -116,7 +94,7 @@ export default function DashboardAbout({ about, aboutItems, principles }: Props)
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="body">
-                                Body text (intro paragraphs)
+                                {t('about.body_label')}
                             </label>
                             <textarea
                                 id="body"
@@ -132,7 +110,7 @@ export default function DashboardAbout({ about, aboutItems, principles }: Props)
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="principles_heading">
-                                Principles block heading
+                                {t('about.principles_heading_label')}
                             </label>
                             <input
                                 id="principles_heading"
@@ -155,7 +133,7 @@ export default function DashboardAbout({ about, aboutItems, principles }: Props)
                                 disabled={processing}
                                 className="inline-flex items-center rounded-md bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-60"
                             >
-                                Save about section
+                                {t('about.save_about')}
                             </button>
                         </div>
                     </form>
@@ -163,22 +141,22 @@ export default function DashboardAbout({ about, aboutItems, principles }: Props)
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-background dark:border-sidebar-border">
                     <div className="flex items-center justify-between gap-2 border-b border-sidebar-border/70 px-4 py-3">
-                        <h2 className="text-sm font-semibold">Key points (Vision, Values, etc.)</h2>
+                        <h2 className="text-sm font-semibold">{t('about.key_points_heading')}</h2>
                         <Link
                             href="/dashboard/about-items/create"
                             className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
                         >
-                            Add key point
+                            {t('about.add_key_point')}
                         </Link>
                     </div>
                     <div className="overflow-auto">
                         <table className="min-w-full border-collapse text-xs">
                             <thead>
                                 <tr className="border-b border-sidebar-border/70 bg-muted/40 text-left text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                                    <th className="px-4 py-2">Label</th>
-                                    <th className="px-4 py-2">Text</th>
-                                    <th className="px-4 py-2 w-20">Order</th>
-                                    <th className="px-4 py-2 w-32 text-right">Actions</th>
+                                    <th className="px-4 py-2">{t('about.col_label')}</th>
+                                    <th className="px-4 py-2">{t('about.col_text')}</th>
+                                    <th className="w-20 px-4 py-2">{t('about.col_order')}</th>
+                                    <th className="w-32 px-4 py-2 text-right">{t('common.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -188,8 +166,7 @@ export default function DashboardAbout({ about, aboutItems, principles }: Props)
                                             colSpan={4}
                                             className="px-4 py-6 text-center text-muted-foreground"
                                         >
-                                            No key points yet. Use &quot;Add key point&quot; to create
-                                            one (e.g. Vision, Values, Expertise).
+                                            {t('about.empty_key_points')}
                                         </td>
                                     </tr>
                                 ) : (
@@ -210,7 +187,7 @@ export default function DashboardAbout({ about, aboutItems, principles }: Props)
                                                     href={`/dashboard/about-items/${item.id}/edit`}
                                                     className="text-primary hover:underline"
                                                 >
-                                                    Edit
+                                                    {t('common.edit')}
                                                 </Link>
                                                 {' · '}
                                                 <button
@@ -218,7 +195,7 @@ export default function DashboardAbout({ about, aboutItems, principles }: Props)
                                                     onClick={() => deleteAboutItem(item.id)}
                                                     className="text-destructive hover:underline"
                                                 >
-                                                    Delete
+                                                    {t('common.delete')}
                                                 </button>
                                             </td>
                                         </tr>
@@ -231,21 +208,21 @@ export default function DashboardAbout({ about, aboutItems, principles }: Props)
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-background dark:border-sidebar-border">
                     <div className="flex items-center justify-between gap-2 border-b border-sidebar-border/70 px-4 py-3">
-                        <h2 className="text-sm font-semibold">Principles</h2>
+                        <h2 className="text-sm font-semibold">{t('about.principles_heading')}</h2>
                         <Link
                             href="/dashboard/principles/create"
                             className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
                         >
-                            Add principle
+                            {t('about.add_principle')}
                         </Link>
                     </div>
                     <div className="overflow-auto">
                         <table className="min-w-full border-collapse text-xs">
                             <thead>
                                 <tr className="border-b border-sidebar-border/70 bg-muted/40 text-left text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                                    <th className="px-4 py-2">Text</th>
-                                    <th className="px-4 py-2 w-20">Order</th>
-                                    <th className="px-4 py-2 w-32 text-right">Actions</th>
+                                    <th className="px-4 py-2">{t('about.principles_col_text')}</th>
+                                    <th className="w-20 px-4 py-2">{t('about.col_order')}</th>
+                                    <th className="w-32 px-4 py-2 text-right">{t('common.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -255,8 +232,7 @@ export default function DashboardAbout({ about, aboutItems, principles }: Props)
                                             colSpan={3}
                                             className="px-4 py-6 text-center text-muted-foreground"
                                         >
-                                            No principles yet. Use &quot;Add principle&quot; to create
-                                            one.
+                                            {t('about.empty_principles')}
                                         </td>
                                     </tr>
                                 ) : (
@@ -276,7 +252,7 @@ export default function DashboardAbout({ about, aboutItems, principles }: Props)
                                                     href={`/dashboard/principles/${p.id}/edit`}
                                                     className="text-primary hover:underline"
                                                 >
-                                                    Edit
+                                                    {t('common.edit')}
                                                 </Link>
                                                 {' · '}
                                                 <button
@@ -284,7 +260,7 @@ export default function DashboardAbout({ about, aboutItems, principles }: Props)
                                                     onClick={() => deletePrinciple(p.id)}
                                                     className="text-destructive hover:underline"
                                                 >
-                                                    Delete
+                                                    {t('common.delete')}
                                                 </button>
                                             </td>
                                         </tr>

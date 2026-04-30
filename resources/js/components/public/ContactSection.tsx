@@ -41,7 +41,7 @@ export function ContactSection({ hideHeadingAndIntro = false, formIntro = null }
     const personName =
         ((c.contact_person_name as string | undefined) ?? '').toString().trim() || defaultPersonName;
     const phoneRaw = ((c.phone as string | undefined) ?? '').toString().trim() || defaultPhone;
-    const phoneDisplay = phoneRaw;
+    const phoneDisplay = formatPhoneDisplay(phoneRaw);
     const telHref = `tel:${phoneRaw.replace(/\s/g, '')}`;
     const personPhotoUrl = (c.contact_person_photo_url as string | null | undefined) ?? null;
     /** Shipped portrait when no photo is set in dashboard. */
@@ -148,7 +148,7 @@ export function ContactSection({ hideHeadingAndIntro = false, formIntro = null }
                             <img
                                 src={avatarPhotoSrc}
                                 alt={personName}
-                                className="h-full w-full object-cover object-top"
+                                className="h-full w-full object-cover object-center"
                             />
                         </div>
                         <p className="min-w-0 flex-1 text-left text-base font-semibold leading-snug tracking-tight text-foreground sm:text-lg">
@@ -259,7 +259,7 @@ export function ContactSection({ hideHeadingAndIntro = false, formIntro = null }
                                 <img
                                     src={avatarPhotoSrc}
                                     alt={personName}
-                                    className="h-full w-full object-cover object-top"
+                                    className="h-full w-full object-cover object-center"
                                 />
                             </div>
                             <p className="min-w-0 flex-1 text-left text-[15px] font-semibold leading-snug text-foreground sm:text-base">
@@ -336,6 +336,15 @@ export function ContactSection({ hideHeadingAndIntro = false, formIntro = null }
             </div>
         </section>
     );
+}
+
+function formatPhoneDisplay(phone: string): string {
+    const normalized = phone.replace(/\s+/g, '');
+    if (/^\d{10}$/.test(normalized)) {
+        return `${normalized.slice(0, 4)} ${normalized.slice(4, 7)} ${normalized.slice(7)}`;
+    }
+
+    return phone;
 }
 
 type LandingFieldProps = {

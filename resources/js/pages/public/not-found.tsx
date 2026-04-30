@@ -1,6 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
+import { PROPERTIES_INDEX_PATH } from '@/lib/public-properties-path';
 
 export default function PublicNotFound() {
     const { locale, translations } = usePage().props as {
@@ -40,10 +41,10 @@ export default function PublicNotFound() {
                                 {isEnglish ? 'Home' : 'Acasa'}
                             </Link>
                             <Link
-                                href="/portfolio"
+                                href={PROPERTIES_INDEX_PATH}
                                 className="inline-flex items-center rounded-full border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-muted"
                             >
-                                {tNav.portfolio ?? (isEnglish ? 'Units' : 'Unități')}
+                                {tNav.portfolio ?? (isEnglish ? 'Properties' : 'Proprietăți')}
                             </Link>
                         </div>
                     </section>

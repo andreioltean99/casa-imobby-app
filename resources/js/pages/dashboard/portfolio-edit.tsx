@@ -1,9 +1,11 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { TinyTextEditor } from '@/components/tiny-text-editor';
+import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
+import type { ListingCategoryOption } from '@/lib/portfolioListingCategories';
 
 type GalleryImage = {
     id: number;
@@ -12,6 +14,8 @@ type GalleryImage = {
 };
 
 type SpecRow = { label: string; value: string };
+type PropertyFilterRow = { property_filter_id: string; value: string };
+type PropertyFilterOption = { id: number; key: string; label: string; is_searchable: boolean; is_active: boolean };
 
 type PortfolioItem = {
     id: number;
@@ -20,14 +24,23 @@ type PortfolioItem = {
     short_description?: string | null;
     description: string | null;
     listing_specs?: SpecRow[] | null;
-    external_listing_ref?: string | null;
-    listing_pdf_path?: string | null;
+    external_storia_url?: string | null;
+    external_imobiliare_url?: string | null;
+    external_olx_url?: string | null;
     image_path: string | null;
     date: string | null;
-    duration: string | null;
+    price?: string | number | null;
     is_published: boolean;
     sort_order: number | null;
+    listing_category?: string | null;
+    zone?: string | null;
+    pinned_home?: boolean;
+    pinned_home_order?: number | null;
     gallery?: GalleryImage[];
+    property_filter_values?: Array<{
+        property_filter_id: number;
+        value: string;
+    }>;
 };
 
 function initialSpecRows(listing_specs: unknown): SpecRow[] {
@@ -42,51 +55,104 @@ function initialSpecRows(listing_specs: unknown): SpecRow[] {
 
 type Props = {
     portfolioItem: PortfolioItem;
+    listingCategoryOptions?: ListingCategoryOption[];
+    propertyFilterOptions?: PropertyFilterOption[];
 };
 
-export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
-    const { props } = usePage<{ locale?: string; availableLocales?: string[] }>();
-    const currentLocale = props.locale ?? 'en';
-    const availableLocales = props.availableLocales?.length
-        ? props.availableLocales
-        : ['en', 'ro'];
+function listingCategoryOptionsFromTitles(
+    titles: Record<string, string> | undefined,
+): ListingCategoryOption[] {
+    if (!titles) {
+        return [];
+    }
+    return Object.entries(titles).map(([value, label]) => ({ value, label }));
+}
 
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Dashboard', href: dashboard() },
-        { title: 'Portfolio', href: '/dashboard/portfolio' },
-        {
-            title: portfolioItem.title,
-            href: `/dashboard/portfolio/${portfolioItem.id}/edit`,
-        },
-    ];
+export default function DashboardPortfolioEdit({
+    portfolioItem,
+    listingCategoryOptions: listingCategoryOptionsProp = [],
+    propertyFilterOptions = [],
+}: Props) {
+    const t = useAdminT();
+    const { props } = usePage<{
+        errors?: Record<string, string | string[]>;
+        listingCategoryOptions?: ListingCategoryOption[];
+        portfolioListingAdmin?: {
+            categoryLabel: string;
+            categoryPlaceholder: string;
+            pinnedHomeLabel: string;
+            pinnedHomeOrderLabel: string;
+            categoryTitles: Record<string, string>;
+        };
+    }>();
+    const listingAdmin = props.portfolioListingAdmin;
+    const fromInertiaPage = props.listingCategoryOptions ?? [];
+    const listingCategoryOptions =
+        listingCategoryOptionsProp.length > 0
+            ? listingCategoryOptionsProp
+            : fromInertiaPage.length > 0
+              ? fromInertiaPage
+              : listingCategoryOptionsFromTitles(listingAdmin?.categoryTitles);
+
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            { title: t('breadcrumb.property_listings'), href: '/dashboard/portfolio' },
+            {
+                title: portfolioItem.title,
+                href: `/dashboard/portfolio/${portfolioItem.id}/edit`,
+            },
+        ],
+        [t, portfolioItem.title, portfolioItem.id],
+    );
 
     const [specRows, setSpecRows] = useState<SpecRow[]>(() => initialSpecRows(portfolioItem.listing_specs));
+    const [propertyFilterRows, setPropertyFilterRows] = useState<PropertyFilterRow[]>(
+        () =>
+            portfolioItem.property_filter_values?.length
+                ? portfolioItem.property_filter_values.map((row) => ({
+                      property_filter_id: String(row.property_filter_id),
+                      value: row.value ?? '',
+                  }))
+                : [{ property_filter_id: '', value: '' }],
+    );
 
     const { data, setData, put, processing, errors, delete: destroy } = useForm<{
         title: string;
         short_description: string;
         description: string;
         date: string;
-        duration: string;
+        price: string;
         is_published: boolean;
-        sort_order: string;
-        external_listing_ref: string;
+        external_storia_url: string;
+        external_imobiliare_url: string;
+        external_olx_url: string;
+        listing_category: string;
+        zone: string;
+        pinned_home: boolean;
+        pinned_home_order: string;
         image: File | null;
-        listing_pdf: File | null;
     }>({
         title: portfolioItem.title ?? '',
         short_description: portfolioItem.short_description ?? '',
         description: portfolioItem.description ?? '',
         date: portfolioItem.date ?? '',
-        duration: portfolioItem.duration ?? '',
-        is_published: portfolioItem.is_published ?? true,
-        sort_order:
-            portfolioItem.sort_order != null
-                ? String(portfolioItem.sort_order)
+        price:
+            portfolioItem.price !== null && portfolioItem.price !== undefined && portfolioItem.price !== ''
+                ? String(portfolioItem.price)
                 : '',
-        external_listing_ref: portfolioItem.external_listing_ref ?? '',
+        is_published: portfolioItem.is_published ?? true,
+        external_storia_url: portfolioItem.external_storia_url ?? '',
+        external_imobiliare_url: portfolioItem.external_imobiliare_url ?? '',
+        external_olx_url: portfolioItem.external_olx_url ?? '',
+        listing_category: portfolioItem.listing_category ?? '',
+        zone: portfolioItem.zone ?? '',
+        pinned_home: portfolioItem.pinned_home ?? false,
+        pinned_home_order:
+            portfolioItem.pinned_home_order != null
+                ? String(portfolioItem.pinned_home_order)
+                : '',
         image: null,
-        listing_pdf: null,
     });
 
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -111,12 +177,17 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
             transform: (form) => ({
                 ...form,
                 listing_specs_json: JSON.stringify(specsPayload),
+                property_filters_json: JSON.stringify(
+                    propertyFilterRows
+                        .map((row) => ({ property_filter_id: Number(row.property_filter_id), value: row.value.trim() }))
+                        .filter((row) => row.property_filter_id > 0 && row.value !== ''),
+                ),
             }),
         });
     };
 
     const onDelete = () => {
-        if (!confirm('Delete this portfolio project?')) return;
+        if (!confirm(t('portfolio.edit.delete_confirm'))) return;
         destroy(`/dashboard/portfolio/${portfolioItem.id}`);
     };
 
@@ -129,71 +200,51 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
         const form = galleryFormRef.current;
         if (!form) return;
         const fileInput = form.querySelector<HTMLInputElement>('input[type="file"]');
-        if (!fileInput?.files?.length) return;
+        const files = fileInput?.files;
+        if (!files?.length) return;
         setGalleryUploading(true);
         const formData = new FormData();
-        formData.append('image', fileInput.files[0]);
-        router.post(
-            `/dashboard/portfolio/${portfolioItem.id}/gallery`,
-            formData,
-            {
-                forceFormData: true,
-                onFinish: () => {
-                    setGalleryUploading(false);
+        Array.from(files).forEach((file) => {
+            formData.append('images[]', file);
+        });
+        router.post(`/dashboard/portfolio/${portfolioItem.id}/gallery`, formData, {
+            forceFormData: true,
+            onFinish: () => {
+                setGalleryUploading(false);
+                if (fileInput) {
                     fileInput.value = '';
-                },
-            }
-        );
+                }
+            },
+        });
     };
 
     const deleteGalleryImage = (imageId: number) => {
-        if (!confirm('Remove this image from the gallery?')) return;
+        if (!confirm(t('portfolio.edit.remove_gallery_confirm'))) return;
         router.delete(`/dashboard/portfolio/${portfolioItem.id}/gallery/${imageId}`);
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Edit project – ${portfolioItem.title}`} />
+            <Head title={t('meta.edit_listing', { title: portfolioItem.title })} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between gap-2">
                     <div>
-                        <h1 className="text-lg font-semibold">Edit portfolio project</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Update the project details and visibility.
-                        </p>
+                        <h1 className="text-lg font-semibold">{t('portfolio.edit.title')}</h1>
+                        <p className="text-sm text-muted-foreground">{t('portfolio.edit.description')}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 rounded-full border border-border bg-background/80 px-1 py-0.5 text-[11px] font-medium text-muted-foreground">
-                            {availableLocales.map((code) => {
-                                const isActive = code === currentLocale;
-                                return (
-                                    <a
-                                        key={code}
-                                        href={`/lang/${code}`}
-                                        className={[
-                                            'inline-flex h-6 items-center justify-center rounded-full px-2 transition-colors',
-                                            isActive
-                                                ? 'bg-foreground text-background'
-                                                : 'hover:bg-muted hover:text-foreground',
-                                        ].join(' ')}
-                                    >
-                                        {code.toUpperCase()}
-                                    </a>
-                                );
-                            })}
-                        </div>
                         <button
                             type="button"
                             onClick={onDelete}
                             className="inline-flex items-center rounded-md border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/20"
                         >
-                            Delete
+                            {t('common.delete')}
                         </button>
                         <Link
                             href="/dashboard/portfolio"
                             className="text-xs font-medium text-muted-foreground hover:text-foreground"
                         >
-                            Back to portfolio
+                            {t('portfolio.edit.back')}
                         </Link>
                     </div>
                 </div>
@@ -202,7 +253,7 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
                     <form onSubmit={submit} className="space-y-4">
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="title">
-                                Title
+                                {t('portfolio.form.title')}
                             </label>
                             <input
                                 id="title"
@@ -218,7 +269,7 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="short_description">
-                                Short description (for project card)
+                                {t('portfolio.form.short_description')}
                             </label>
                             <textarea
                                 id="short_description"
@@ -233,7 +284,7 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="description">
-                                Full description (project page)
+                                {t('portfolio.form.description')}
                             </label>
                             <TinyTextEditor
                                 id="description"
@@ -247,18 +298,17 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
                         </div>
                         <div className="space-y-2 rounded-md border border-sidebar-border/70 bg-muted/20 p-3">
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                                <label className="text-xs font-medium">Listing characteristics</label>
+                                <label className="text-xs font-medium">{t('portfolio.form.listing_specs_heading')}</label>
                                 <button
                                     type="button"
                                     className="text-xs font-medium text-primary hover:underline"
                                     onClick={() => setSpecRows((rows) => [...rows, { label: '', value: '' }])}
                                 >
-                                    Add row
+                                    {t('portfolio.form.add_row')}
                                 </button>
                             </div>
                             <p className="text-[11px] text-muted-foreground">
-                                Label and value pairs (e.g. &quot;Nr. camere&quot; / &quot;2&quot;) shown in the public
-                                &quot;Characteristics&quot; section.
+                                {t('portfolio.form.listing_specs_hint')}
                             </p>
                             <div className="space-y-2">
                                 {specRows.map((row, index) => (
@@ -273,7 +323,7 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
                                                     ),
                                                 )
                                             }
-                                            placeholder="Label"
+                                            placeholder={t('portfolio.form.placeholder_label')}
                                             className="h-9 min-w-[8rem] flex-1 rounded-md border border-sidebar-border bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                         />
                                         <input
@@ -286,7 +336,7 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
                                                     ),
                                                 )
                                             }
-                                            placeholder="Value"
+                                            placeholder={t('portfolio.form.placeholder_value')}
                                             className="h-9 min-w-[8rem] flex-1 rounded-md border border-sidebar-border bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                         />
                                         <button
@@ -297,7 +347,7 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
                                             }
                                             className="h-9 shrink-0 rounded-md border border-sidebar-border px-2 text-xs text-muted-foreground hover:bg-muted disabled:opacity-40"
                                         >
-                                            Remove
+                                            {t('common.remove')}
                                         </button>
                                     </div>
                                 ))}
@@ -306,122 +356,198 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
                                 <p className="text-xs text-red-500">{errors.listing_specs_json}</p>
                             )}
                         </div>
+                        <div className="space-y-2 rounded-md border border-sidebar-border/70 bg-muted/20 p-3">
+                            <div className="flex items-center justify-between">
+                                <label className="text-xs font-medium">Caracteristici proprietate</label>
+                                <button type="button" className="text-xs font-medium text-primary hover:underline" onClick={() => setPropertyFilterRows((rows) => [...rows, { property_filter_id: '', value: '' }])}>
+                                    {t('portfolio.form.add_row')}
+                                </button>
+                            </div>
+                            {propertyFilterRows.map((row, index) => (
+                                <div key={index} className="flex flex-wrap items-center gap-2">
+                                    <select value={row.property_filter_id} onChange={(e) => setPropertyFilterRows((rows) => rows.map((r, i) => i === index ? { ...r, property_filter_id: e.target.value } : r))} className="h-9 min-w-[12rem] flex-1 rounded-md border border-sidebar-border bg-background px-2 text-xs">
+                                        <option value="">Alege filtru</option>
+                                        {propertyFilterOptions.filter((f) => f.is_active).map((filter) => (
+                                            <option key={filter.id} value={filter.id}>{filter.label}</option>
+                                        ))}
+                                    </select>
+                                    <input value={row.value} onChange={(e) => setPropertyFilterRows((rows) => rows.map((r, i) => i === index ? { ...r, value: e.target.value } : r))} placeholder={t('portfolio.form.placeholder_value')} className="h-9 min-w-[8rem] flex-1 rounded-md border border-sidebar-border bg-background px-2 text-xs" />
+                                    <button type="button" disabled={propertyFilterRows.length <= 1} onClick={() => setPropertyFilterRows((rows) => rows.filter((_, i) => i !== index))} className="h-9 rounded-md border border-sidebar-border px-2 text-xs text-muted-foreground disabled:opacity-40">{t('common.remove')}</button>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            <div className="space-y-1">
+                                <label className="text-xs font-medium" htmlFor="external_storia_url">
+                                    {t('portfolio.form.storia_url')}
+                                </label>
+                                <input
+                                    id="external_storia_url"
+                                    type="url"
+                                    inputMode="url"
+                                    value={data.external_storia_url}
+                                    onChange={(e) => setData('external_storia_url', e.target.value)}
+                                    placeholder="https://www.storia.ro/…"
+                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                />
+                                {errors.external_storia_url && (
+                                    <p className="text-xs text-red-500">{errors.external_storia_url}</p>
+                                )}
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-medium" htmlFor="external_imobiliare_url">
+                                    {t('portfolio.form.imobiliare_url')}
+                                </label>
+                                <input
+                                    id="external_imobiliare_url"
+                                    type="url"
+                                    inputMode="url"
+                                    value={data.external_imobiliare_url}
+                                    onChange={(e) => setData('external_imobiliare_url', e.target.value)}
+                                    placeholder="https://www.imobiliare.ro/…"
+                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                />
+                                {errors.external_imobiliare_url && (
+                                    <p className="text-xs text-red-500">{errors.external_imobiliare_url}</p>
+                                )}
+                            </div>
+                            <div className="space-y-1 sm:col-span-2 lg:col-span-1">
+                                <label className="text-xs font-medium" htmlFor="external_olx_url">
+                                    {t('portfolio.form.olx_url')}
+                                </label>
+                                <input
+                                    id="external_olx_url"
+                                    type="url"
+                                    inputMode="url"
+                                    value={data.external_olx_url}
+                                    onChange={(e) => setData('external_olx_url', e.target.value)}
+                                    placeholder="https://www.olx.ro/d/oferta/…"
+                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                />
+                                {errors.external_olx_url && (
+                                    <p className="text-xs text-red-500">{errors.external_olx_url}</p>
+                                )}
+                            </div>
+                        </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="external_listing_ref">
-                                External offer ID (optional)
+                            <label className="text-xs font-medium" htmlFor="date">
+                                {t('portfolio.form.date')}
                             </label>
                             <input
-                                id="external_listing_ref"
+                                id="date"
                                 type="text"
-                                value={data.external_listing_ref}
-                                onChange={(e) => setData('external_listing_ref', e.target.value)}
-                                placeholder="e.g. P169884"
+                                value={data.date}
+                                onChange={(e) => setData('date', e.target.value)}
                                 className="h-9 w-full max-w-md rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             />
-                            {errors.external_listing_ref && (
-                                <p className="text-xs text-red-500">{errors.external_listing_ref}</p>
-                            )}
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="listing_pdf">
-                                Listing PDF (optional)
-                            </label>
-                            <input
-                                id="listing_pdf"
-                                type="file"
-                                accept="application/pdf"
-                                onChange={(e) => setData('listing_pdf', e.target.files?.[0] ?? null)}
-                                className="block w-full text-xs text-muted-foreground file:mr-2 file:rounded-md file:border file:border-sidebar-border file:bg-muted file:px-2 file:py-1 file:text-xs file:font-medium file:text-foreground hover:file:bg-muted/80"
-                            />
-                            {portfolioItem.listing_pdf_path && !data.listing_pdf ? (
-                                <p className="text-xs text-muted-foreground">
-                                    Current:{' '}
-                                    <a
-                                        href={`/storage/${portfolioItem.listing_pdf_path}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="font-medium text-primary hover:underline"
-                                    >
-                                        View PDF
-                                    </a>{' '}
-                                    — upload a new file to replace.
-                                </p>
-                            ) : null}
-                            {errors.listing_pdf && (
-                                <p className="text-xs text-red-500">{errors.listing_pdf}</p>
+                            {errors.date && (
+                                <p className="text-xs text-red-500">{errors.date}</p>
                             )}
                         </div>
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="space-y-1">
-                                <label className="text-xs font-medium" htmlFor="date">
-                                    Date (e.g. 31 August 2024)
-                                </label>
-                                <input
-                                    id="date"
-                                    type="text"
-                                    value={data.date}
-                                    onChange={(e) => setData('date', e.target.value)}
-                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                />
-                                {errors.date && (
-                                    <p className="text-xs text-red-500">{errors.date}</p>
-                                )}
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium" htmlFor="duration">
-                                    Duration (e.g. 6 months)
-                                </label>
-                                <input
-                                    id="duration"
-                                    type="text"
-                                    value={data.duration}
-                                    onChange={(e) => setData('duration', e.target.value)}
-                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                />
-                                {errors.duration && (
-                                    <p className="text-xs text-red-500">{errors.duration}</p>
-                                )}
-                            </div>
-                        </div>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium" htmlFor="is_published">
-                                    Published
+                                <label className="text-xs font-medium" htmlFor="listing_category">
+                                    {listingAdmin?.categoryLabel ?? 'Listing category'}
                                 </label>
                                 <select
-                                    id="is_published"
-                                    value={data.is_published ? '1' : '0'}
-                                    onChange={(e) =>
-                                        setData('is_published', e.target.value === '1')
-                                    }
+                                    id="listing_category"
+                                    value={data.listing_category}
+                                    onChange={(e) => setData('listing_category', e.target.value)}
                                     className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                 >
-                                    <option value="1">Yes</option>
-                                    <option value="0">No</option>
+                                    <option value="">
+                                        {listingAdmin?.categoryPlaceholder ?? '—'}
+                                    </option>
+                                    {listingCategoryOptions.map((opt: ListingCategoryOption) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
                                 </select>
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium" htmlFor="sort_order">
-                                    Sort order
-                                </label>
-                                <input
-                                    id="sort_order"
-                                    type="number"
-                                    min={0}
-                                    value={data.sort_order}
-                                    onChange={(e) => setData('sort_order', e.target.value)}
-                                    className="h-9 w-full max-w-[120px] rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                />
-                                {errors.sort_order && (
-                                    <p className="text-xs text-red-500">
-                                        {errors.sort_order}
-                                    </p>
+                                {errors.listing_category && (
+                                    <p className="text-xs text-red-500">{errors.listing_category}</p>
                                 )}
                             </div>
+                            <div className="space-y-1">
+                                <label className="text-xs font-medium" htmlFor="zone">
+                                    Oras / zona
+                                </label>
+                                <input
+                                    id="zone"
+                                    type="text"
+                                    value={data.zone}
+                                    onChange={(e) => setData('zone', e.target.value)}
+                                    placeholder="ex. Cluj-Napoca, Buna Ziua"
+                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                />
+                                {errors.zone && <p className="text-xs text-red-500">{errors.zone}</p>}
+                            </div>
+                            <div className="space-y-2">
+                                <label className="flex cursor-pointer items-center gap-2 text-xs font-medium">
+                                    <input
+                                        type="checkbox"
+                                        checked={data.pinned_home}
+                                        onChange={(e) => setData('pinned_home', e.target.checked)}
+                                        className="h-4 w-4 rounded border-sidebar-border"
+                                    />
+                                    {listingAdmin?.pinnedHomeLabel ?? 'Pin to homepage'}
+                                </label>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-medium" htmlFor="pinned_home_order">
+                                        {listingAdmin?.pinnedHomeOrderLabel ?? 'Pin order'}
+                                    </label>
+                                    <input
+                                        id="pinned_home_order"
+                                        type="number"
+                                        min={0}
+                                        max={9999}
+                                        value={data.pinned_home_order}
+                                        onChange={(e) => setData('pinned_home_order', e.target.value)}
+                                        disabled={!data.pinned_home}
+                                        className="h-9 w-full max-w-[140px] rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
+                                    />
+                                    {errors.pinned_home_order && (
+                                        <p className="text-xs text-red-500">{errors.pinned_home_order}</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-medium" htmlFor="price">
+                                {t('portfolio.form.price')}
+                            </label>
+                            <input
+                                id="price"
+                                type="number"
+                                inputMode="decimal"
+                                min={0}
+                                step="0.01"
+                                value={data.price}
+                                onChange={(e) => setData('price', e.target.value)}
+                                placeholder={t('portfolio.form.price_ph')}
+                                className="h-9 w-full max-w-xs rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            />
+                            {errors.price && <p className="text-xs text-red-500">{errors.price}</p>}
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-medium" htmlFor="is_published">
+                                {t('common.published_field')}
+                            </label>
+                            <select
+                                id="is_published"
+                                value={data.is_published ? '1' : '0'}
+                                onChange={(e) =>
+                                    setData('is_published', e.target.value === '1')
+                                }
+                                className="h-9 w-full max-w-xs rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                            >
+                                <option value="1">{t('common.yes')}</option>
+                                <option value="0">{t('common.no')}</option>
+                            </select>
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="image">
-                                Image (optional)
+                                {t('portfolio.form.image')}
                             </label>
                             <input
                                 id="image"
@@ -435,12 +561,12 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
                             {imagePreview && (
                                 <div className="mt-2">
                                     <p className="mb-1 text-xs text-muted-foreground">
-                                        Preview (new image):
+                                        {t('portfolio.edit.preview_new_image')}
                                     </p>
                                     <div className="h-24 w-24 overflow-hidden rounded-md border border-sidebar-border/70 bg-muted">
                                         <img
                                             src={imagePreview}
-                                            alt="New image preview"
+                                            alt={t('portfolio.edit.new_image_preview_alt')}
                                             className="h-full w-full object-cover"
                                         />
                                     </div>
@@ -449,7 +575,7 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
                             {portfolioItem.image_path && !imagePreview && (
                                 <div className="mt-2">
                                     <p className="mb-1 text-xs text-muted-foreground">
-                                        Current image:
+                                        {t('portfolio.edit.current_image')}
                                     </p>
                                     <div className="h-24 w-24 overflow-hidden rounded-md border border-sidebar-border/70 bg-muted">
                                         <img
@@ -472,46 +598,54 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center rounded-md border border-sidebar-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
                                 >
-                                    View project
+                                    {t('portfolio.edit.view_public')}
                                 </a>
                             )}
                             <Link
                                 href="/dashboard/portfolio"
                                 className="inline-flex items-center rounded-md border border-sidebar-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </Link>
                             <button
                                 type="submit"
                                 disabled={processing}
                                 className="inline-flex items-center rounded-md bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-60"
                             >
-                                Save changes
+                                {t('portfolio.edit.save_changes')}
                             </button>
                         </div>
                     </form>
                 </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-6 dark:border-sidebar-border">
-                    <h2 className="mb-4 text-sm font-semibold">Project gallery</h2>
+                    <h2 className="mb-4 text-sm font-semibold">{t('portfolio.edit.gallery_section_title')}</h2>
                     <p className="mb-4 text-xs text-muted-foreground">
-                        Add photos to display in a gallery on the project page. Upload one image at a time.
+                        {t('portfolio.edit.gallery_section_help')}
                     </p>
                     <form ref={galleryFormRef} onSubmit={onGallerySubmit} className="mb-4 flex flex-wrap items-end gap-2">
                         <input
                             type="file"
                             accept="image/*"
-                            name="image"
-                            className="block text-xs text-muted-foreground file:mr-2 file:rounded-md file:border file:border-sidebar-border file:bg-muted file:px-2 file:py-1 file:text-xs file:font-medium file:text-foreground hover:file:bg-muted/80"
+                            multiple
+                            name="images[]"
+                            className="block max-w-full text-xs text-muted-foreground file:mr-2 file:rounded-md file:border file:border-sidebar-border file:bg-muted file:px-2 file:py-1 file:text-xs file:font-medium file:text-foreground hover:file:bg-muted/80"
                         />
                         <button
                             type="submit"
                             disabled={galleryUploading}
                             className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-60"
                         >
-                            {galleryUploading ? 'Uploading…' : 'Add photo'}
+                            {galleryUploading ? t('portfolio.edit.gallery_uploading') : t('portfolio.edit.gallery_add_photos')}
                         </button>
                     </form>
+                    {props.errors?.images ? (
+                        <p className="mb-3 text-xs text-red-500">
+                            {Array.isArray(props.errors.images)
+                                ? props.errors.images.join(' ')
+                                : props.errors.images}
+                        </p>
+                    ) : null}
                     {gallery.length > 0 ? (
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                             {gallery.map((img) => (
@@ -529,14 +663,14 @@ export default function DashboardPortfolioEdit({ portfolioItem }: Props) {
                                         onClick={() => deleteGalleryImage(img.id)}
                                         className="absolute right-1 top-1 rounded bg-destructive/90 px-1.5 py-0.5 text-[10px] font-medium text-white opacity-0 transition group-hover:opacity-100"
                                     >
-                                        Remove
+                                        {t('common.remove')}
                                     </button>
                                 </div>
                             ))}
                         </div>
                     ) : (
                         <p className="text-xs text-muted-foreground">
-                            No gallery photos yet. Use the form above to add some.
+                            {t('portfolio.edit.gallery_empty')}
                         </p>
                     )}
                 </div>

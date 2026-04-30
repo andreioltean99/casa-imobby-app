@@ -1,4 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
+import { PROPERTIES_INDEX_PATH } from '@/lib/public-properties-path';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
@@ -12,6 +13,7 @@ export type PortfolioItemData = {
     image_path: string | null;
     date: string | null;
     duration: string | null;
+    price?: string | number | null;
 };
 
 const defaultProjects: PortfolioItemData[] = [
@@ -24,10 +26,19 @@ type Props = {
     portfolioItems?: PortfolioItemData[];
     /** On home page we show a subset and "View full portfolio"; on /portfolio we show all and can hide the button */
     showViewAll?: boolean;
+    /** When false, hides the in-section title/body (e.g. properties index already has a page heading). */
+    showSectionIntro?: boolean;
 };
 
-export function PortfolioSection({ portfolioItems, showViewAll = true }: Props) {
-    const { translations } = usePage().props as { translations?: any };
+export function PortfolioSection({
+    portfolioItems,
+    showViewAll = true,
+    showSectionIntro = true,
+}: Props) {
+    const { translations, locale: pageLocale } = usePage().props as {
+        translations?: Record<string, unknown>;
+        locale?: string;
+    };
     const tPortfolio = translations?.portfolio ?? {};
     const tUnits = translations?.units ?? {};
     const localizeDuration = (value: string) => {
@@ -48,6 +59,18 @@ export function PortfolioSection({ portfolioItems, showViewAll = true }: Props) 
         const normalized = stripHtml(value);
         if (normalized.length <= 140) return normalized;
         return `${normalized.slice(0, 140).trimEnd()}...`;
+    };
+
+    const formatCardPrice = (raw: string | number | null | undefined) => {
+        if (raw === null || raw === undefined || raw === '') return null;
+        const num = Number(raw);
+        if (Number.isNaN(num)) return null;
+        const loc = pageLocale === 'en' ? 'en-RO' : 'ro-RO';
+        try {
+            return new Intl.NumberFormat(loc, { style: 'currency', currency: 'EUR' }).format(num);
+        } catch {
+            return `${num} €`;
+        }
     };
     const items =
         portfolioItems && portfolioItems.length > 0 ? portfolioItems : defaultProjects;
@@ -92,24 +115,26 @@ export function PortfolioSection({ portfolioItems, showViewAll = true }: Props) 
             id="units"
             className={`space-y-6 transition-opacity duration-500 ${isVisible ? 'animate-mobile-fade-up' : ''}`}
         >
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-                <div>
-                    <h2 className="text-lg font-semibold sm:text-xl">
-                        {tPortfolio.section_title ?? 'Selected projects'}
-                    </h2>
-                    <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                        {tPortfolio.section_body ??
-                            'Recent implementations that showcase our approach to heat recovery, process optimization and modernisation.'}
-                    </p>
+            {showSectionIntro ? (
+                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                    <div>
+                        <h2 className="text-lg font-semibold sm:text-xl">
+                            {tPortfolio.section_title ?? 'Selected projects'}
+                        </h2>
+                        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                            {tPortfolio.section_body ??
+                                'Recent implementations that showcase our approach to heat recovery, process optimization and modernisation.'}
+                        </p>
+                    </div>
+                    {showViewAll && (
+                        <Button asChild variant="outline" size="sm">
+                            <a href={PROPERTIES_INDEX_PATH}>
+                                {tPortfolio.view_all ?? 'View all properties'}
+                            </a>
+                        </Button>
+                    )}
                 </div>
-                {showViewAll && (
-                    <Button asChild variant="outline" size="sm">
-                        <a href="/portfolio">
-                            {tPortfolio.view_all ?? 'View full unit list'}
-                        </a>
-                    </Button>
-                )}
-            </div>
+            ) : null}
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {items.map((project, index) => {
@@ -142,6 +167,11 @@ export function PortfolioSection({ portfolioItems, showViewAll = true }: Props) 
                                         {(tPortfolio.list_item_prefix ?? 'Unit') + ' #' + (index + 1)}
                                     </p>
                                     <h3 className="text-sm font-semibold">{project.title}</h3>
+                                    {formatCardPrice(project.price) ? (
+                                        <p className="text-sm font-semibold text-foreground">
+                                            {formatCardPrice(project.price)}
+                                        </p>
+                                    ) : null}
                                     {(project.short_description || project.description) && (
                                         <p className="text-xs text-muted-foreground">
                                             {getDescriptionPreview(project.short_description ?? project.description)}

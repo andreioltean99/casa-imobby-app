@@ -1,25 +1,40 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Header } from '@/components/public/Header';
 import { Hero } from '@/components/public/Hero';
 import { EndToEndCard } from '@/components/public/EndToEndCard';
-import { PortfolioSection, type PortfolioItemData } from '@/components/public/PortfolioSection';
+import {
+    HomePortfolioCategories,
+    type PortfolioCategoryBlock,
+} from '@/components/public/HomePortfolioCategories';
 import { TestimonialsSection, type TestimonialItem } from '@/components/public/TestimonialsSection';
 import { AboutSection, type AboutData, type AboutItemData, type PrincipleItem } from '@/components/public/AboutSection';
 import { ContactSection } from '@/components/public/ContactSection';
 import { PropertySearchStrip } from '@/components/public/PropertySearchStrip';
 import { LeadOfferModal } from '@/components/public/LeadOfferModal';
 import { Footer } from '@/components/public/Footer';
+import { PROPERTIES_INDEX_PATH } from '@/lib/public-properties-path';
 
 type Props = {
-    services?: ServiceItem[];
     testimonials?: TestimonialItem[];
-    portfolioItems?: PortfolioItemData[];
+    portfolioCategoryBlocks?: PortfolioCategoryBlock[];
+    listingCategoryTitles?: Record<string, string>;
     about?: AboutData | null;
     aboutItems?: AboutItemData[];
     principles?: PrincipleItem[];
 };
 
-export default function PublicHome({ testimonials, portfolioItems, about, aboutItems, principles }: Props) {
+export default function PublicHome({
+    testimonials,
+    portfolioCategoryBlocks,
+    listingCategoryTitles,
+    about,
+    aboutItems,
+    principles,
+}: Props) {
+    const { props } = usePage<{ translations?: Record<string, unknown> }>();
+    const tPortfolio = (props.translations?.portfolio as Record<string, string> | undefined) ?? {};
+    const viewAllLabel = tPortfolio.view_all ?? 'View full unit list';
+
     return (
         <>
             <Head title="Casa Imobby – Agenție imobiliară" />
@@ -35,7 +50,19 @@ export default function PublicHome({ testimonials, portfolioItems, about, aboutI
 
                     <PropertySearchStrip />
 
-                    <PortfolioSection portfolioItems={portfolioItems} showViewAll />
+                    <HomePortfolioCategories
+                        blocks={portfolioCategoryBlocks ?? []}
+                        categoryTitles={listingCategoryTitles}
+                    />
+
+                    <div className="flex justify-center pt-2">
+                        <Link
+                            href={PROPERTIES_INDEX_PATH}
+                            className="text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                        >
+                            {viewAllLabel}
+                        </Link>
+                    </div>
 
                     <TestimonialsSection testimonials={testimonials} />
 

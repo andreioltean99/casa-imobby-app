@@ -1,38 +1,38 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-    },
-    {
-        title: 'Testimonials',
-        href: '/dashboard/testimonials',
-    },
-    {
-        title: 'Add testimonial',
-        href: '/dashboard/testimonials/create',
-    },
-];
-
 export default function DashboardTestimonialCreate() {
+    const t = useAdminT();
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            {
+                title: t('breadcrumb.testimonials'),
+                href: '/dashboard/testimonials',
+            },
+            {
+                title: t('breadcrumb.add_testimonial'),
+                href: '/dashboard/testimonials/create',
+            },
+        ],
+        [t],
+    );
+
     const { data, setData, post, processing, errors } = useForm<{
         name: string;
         role: string;
         quote: string;
         is_published: boolean;
-        sort_order: string;
         image: File | null;
     }>({
         name: '',
         role: '',
         quote: '',
         is_published: true,
-        sort_order: '',
         image: null,
     });
 
@@ -57,20 +57,22 @@ export default function DashboardTestimonialCreate() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Add testimonial – Dashboard" />
+            <Head title={t('meta.add_testimonial')} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between gap-2">
                     <div>
-                        <h1 className="text-lg font-semibold">Add testimonial</h1>
+                        <h1 className="text-lg font-semibold">
+                            {t('testimonials.create.title')}
+                        </h1>
                         <p className="text-sm text-muted-foreground">
-                            Create a new client testimonial for the public website.
+                            {t('testimonials.create.intro')}
                         </p>
                     </div>
                     <Link
                         href="/dashboard/testimonials"
                         className="text-xs font-medium text-muted-foreground hover:text-foreground"
                     >
-                        Back to testimonials
+                        {t('testimonials.create.back')}
                     </Link>
                 </div>
 
@@ -78,7 +80,7 @@ export default function DashboardTestimonialCreate() {
                     <form onSubmit={submit} className="space-y-4">
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="name">
-                                Name
+                                {t('common.name')}
                             </label>
                             <input
                                 id="name"
@@ -95,7 +97,7 @@ export default function DashboardTestimonialCreate() {
 
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="role">
-                                Role / Company (optional)
+                                {t('testimonials.create.role_optional')}
                             </label>
                             <input
                                 id="role"
@@ -111,7 +113,7 @@ export default function DashboardTestimonialCreate() {
 
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="quote">
-                                Quote
+                                {t('testimonials.create.quote')}
                             </label>
                             <textarea
                                 id="quote"
@@ -125,10 +127,10 @@ export default function DashboardTestimonialCreate() {
                             )}
                         </div>
 
-                        <div className="grid gap-4 md:grid-cols-3">
+                        <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-1">
                                 <label className="text-xs font-medium" htmlFor="is_published">
-                                    Published
+                                    {t('common.published_field')}
                                 </label>
                                 <select
                                     id="is_published"
@@ -138,8 +140,8 @@ export default function DashboardTestimonialCreate() {
                                     }
                                     className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                 >
-                                    <option value="1">Yes</option>
-                                    <option value="0">No</option>
+                                    <option value="1">{t('common.yes')}</option>
+                                    <option value="0">{t('common.no')}</option>
                                 </select>
                                 {errors.is_published && (
                                     <p className="text-xs text-red-500">
@@ -148,25 +150,8 @@ export default function DashboardTestimonialCreate() {
                                 )}
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-medium" htmlFor="sort_order">
-                                    Sort order
-                                </label>
-                                <input
-                                    id="sort_order"
-                                    type="number"
-                                    value={data.sort_order}
-                                    onChange={(e) => setData('sort_order', e.target.value)}
-                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                />
-                                {errors.sort_order && (
-                                    <p className="text-xs text-red-500">
-                                        {errors.sort_order}
-                                    </p>
-                                )}
-                            </div>
-                            <div className="space-y-1">
                                 <label className="text-xs font-medium" htmlFor="image">
-                                    Photo (optional)
+                                    {t('testimonials.create.photo')}
                                 </label>
                                 <input
                                     id="image"
@@ -180,12 +165,12 @@ export default function DashboardTestimonialCreate() {
                                 {imagePreview && (
                                     <div className="mt-2 space-y-1">
                                         <p className="text-xs text-muted-foreground">
-                                            Photo preview:
+                                            {t('testimonials.create.photo_preview')}
                                         </p>
                                         <div className="overflow-hidden rounded-md border border-sidebar-border/70 bg-muted">
                                             <img
                                                 src={imagePreview}
-                                                alt="Preview"
+                                                alt={t('common.preview')}
                                                 className="h-24 w-24 object-cover"
                                             />
                                         </div>
@@ -203,14 +188,14 @@ export default function DashboardTestimonialCreate() {
                                 className="inline-flex items-center rounded-md border border-sidebar-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
                                 onClick={() => history.back()}
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </button>
                             <button
                                 type="submit"
                                 disabled={processing}
                                 className="inline-flex items-center rounded-md bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-60"
                             >
-                                Save testimonial
+                                {t('testimonials.create.save')}
                             </button>
                         </div>
                     </form>
@@ -219,4 +204,3 @@ export default function DashboardTestimonialCreate() {
         </AppLayout>
     );
 }
-

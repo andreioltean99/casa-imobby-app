@@ -1,11 +1,15 @@
 import { Link, usePage } from '@inertiajs/react';
+import { useMemo } from 'react';
 import {
     LayoutGrid,
     Quote,
     Building2,
     Briefcase,
+    FileText,
     Phone,
+    Tags,
     Users,
+    SlidersHorizontal,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -19,60 +23,81 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useAdminT } from '@/hooks/use-admin-translations';
 import type { NavItem } from '@/types';
 import { dashboard } from '@/routes';
 
-const platformNavItems: NavItem[] = [
-    {
-        title: 'Portfolio',
-        href: '/dashboard/portfolio',
-        icon: Briefcase,
-    },
-    {
-        title: 'About & Principles',
-        href: '/dashboard/about',
-        icon: Building2,
-    },
-    {
-        title: 'Testimonials',
-        href: '/dashboard/testimonials',
-        icon: Quote,
-    },
-    {
-        title: 'Contact',
-        href: '/dashboard/contact',
-        icon: Phone,
-    },
-    {
-        title: 'Landing hero',
-        href: '/dashboard/landing-hero',
-        icon: LayoutGrid,
-    },
-];
-
-const dashboardNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
-
-const legalNavItems: NavItem[] = [
-    {
-        title: 'Terms & Conditions',
-        href: '/dashboard/legal/terms',
-        icon: Briefcase,
-    },
-    {
-        title: 'Privacy Policy',
-        href: '/dashboard/legal/privacy',
-        icon: Briefcase,
-    },
-];
-
 export function AppSidebar() {
+    const t = useAdminT();
     const { auth } = usePage().props;
+
+    const dashboardNavItems: NavItem[] = useMemo(
+        () => [
+            {
+                title: t('nav.dashboard'),
+                href: dashboard(),
+                icon: LayoutGrid,
+            },
+        ],
+        [t],
+    );
+
+    const websiteNavItems: NavItem[] = useMemo(
+        () => [
+            {
+                title: t('nav.property_listings'),
+                href: '/dashboard/portfolio',
+                icon: Briefcase,
+            },
+            {
+                title: t('nav.listing_categories'),
+                href: '/dashboard/listing-categories',
+                icon: Tags,
+            },
+            {
+                title: t('nav.property_filters'),
+                href: '/dashboard/property-characteristics',
+                icon: SlidersHorizontal,
+            },
+            {
+                title: t('nav.about_page'),
+                href: '/dashboard/about',
+                icon: Building2,
+            },
+            {
+                title: t('nav.testimonials'),
+                href: '/dashboard/testimonials',
+                icon: Quote,
+            },
+            {
+                title: t('nav.contact_details'),
+                href: '/dashboard/contact',
+                icon: Phone,
+            },
+            {
+                title: t('nav.homepage_hero'),
+                href: '/dashboard/landing-hero',
+                icon: LayoutGrid,
+            },
+        ],
+        [t],
+    );
+
+    const legalNavItems: NavItem[] = useMemo(
+        () => [
+            {
+                title: t('nav.terms'),
+                href: '/dashboard/legal/terms',
+                icon: FileText,
+            },
+            {
+                title: t('nav.privacy'),
+                href: '/dashboard/legal/privacy',
+                icon: FileText,
+            },
+        ],
+        [t],
+    );
 
     const allowedEmails = [
         'andrei.oltean@aao-soft.com',
@@ -83,6 +108,17 @@ export function AppSidebar() {
     const canManageUsers = auth?.user?.email
         ? allowedEmails.includes(String(auth.user.email).toLowerCase())
         : false;
+
+    const usersNavItems: NavItem[] = useMemo(
+        () => [
+            {
+                title: t('nav.users'),
+                href: '/dashboard/users',
+                icon: Users,
+            },
+        ],
+        [t],
+    );
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -99,31 +135,21 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain label="Dashboard" items={dashboardNavItems} />
+                <NavMain label={t('nav.section_dashboard')} items={dashboardNavItems} />
                 <hr className="mx-2 my-3 border-border/60" />
-                <NavMain items={platformNavItems} />
+                <NavMain label={t('nav.section_website')} items={websiteNavItems} />
 
                 {canManageUsers && (
                     <>
                         <hr className="mx-2 my-3 border-border/60" />
-                        <NavMain
-                            label="Users"
-                            items={[
-                                {
-                                    title: 'Users',
-                                    href: '/dashboard/users',
-                                    icon: Users,
-                                },
-                            ]}
-                        />
+                        <NavMain label={t('nav.section_users')} items={usersNavItems} />
                     </>
                 )}
                 <hr className="mx-2 my-3 border-border/60" />
-                <NavMain label="Legal" items={legalNavItems} />
+                <NavMain label={t('nav.section_legal')} items={legalNavItems} />
             </SidebarContent>
 
             <SidebarFooter>
-                {/* Repository/Documentation links removed from admin panel */}
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

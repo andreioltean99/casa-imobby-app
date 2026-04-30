@@ -23,6 +23,7 @@ class PortfolioItemFactory extends Factory
             'image_path' => null,
             'date' => (string) fake()->year(),
             'duration' => null,
+            'price' => null,
             'is_published' => true,
             'sort_order' => null,
         ];

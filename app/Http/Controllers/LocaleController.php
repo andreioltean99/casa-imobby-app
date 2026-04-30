@@ -13,7 +13,8 @@ class LocaleController extends Controller
         }
 
         $referer = (string) request()->headers->get('referer', '');
-        $isAdminContext = str_contains($referer, '/dashboard');
+        $isAdminContext = request()->query('context') === 'admin'
+            || str_contains($referer, '/dashboard');
 
         // Persist and immediately apply the locale in context-specific storage
         if ($isAdminContext) {

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SearchableFilterSelect, type SearchableFilterOption } from '@/components/public/SearchableFilterSelect';
 import { cn } from '@/lib/utils';
+import { propertiesIndexUrl } from '@/lib/public-properties-path';
 
 type Deal = 'sale' | 'rent';
 
@@ -62,21 +63,23 @@ const defaultCopy: PropertySearchCopy = {
 };
 
 function buildPortfolioHref(deal: Deal, city: string, propertyType: string | null): string {
-    const q = new URLSearchParams();
-    q.set('deal', deal);
+    const params: Record<string, string> = { deal };
     if (propertyType) {
-        q.set('type', propertyType);
+        params.type = propertyType;
     }
     if (city && city !== 'any') {
-        q.set('city', city);
+        params.city = city;
     }
-    const s = q.toString();
-    return s ? `/portfolio?${s}` : '/portfolio';
+    return propertiesIndexUrl(params);
 }
 
 export function PropertySearchStrip() {
     const page = usePage();
-    const raw = (page.props as { translations?: { property_search?: Partial<PropertySearchCopy> } }).translations
+    const pageProps = page.props as {
+        translations?: { property_search?: Partial<PropertySearchCopy> };
+        propertySearchOptions?: { types?: string[]; cityZones?: string[] };
+    };
+    const raw = pageProps.translations
         ?.property_search;
     const t = { ...defaultCopy, ...raw };
 
@@ -84,32 +87,36 @@ export function PropertySearchStrip() {
     const [propertyType, setPropertyType] = useState<string | null>(null);
     const [city, setCity] = useState('any');
 
-    const typeChips = useMemo(
-        () =>
-            [
-                { value: 'apartment', label: t.type_apartment },
-                { value: 'house', label: t.type_house },
-                { value: 'office', label: t.type_office },
-                { value: 'commercial', label: t.type_commercial },
-                { value: 'industrial', label: t.type_industrial },
-                { value: 'land', label: t.type_land },
-            ] as const,
+    const availableTypes = pageProps.propertySearchOptions?.types ?? [];
+    const typeLabelByKey = useMemo(
+        () => ({
+            apartment: t.type_apartment,
+            house: t.type_house,
+            office: t.type_office,
+            commercial: t.type_commercial,
+            industrial: t.type_industrial,
+            land: t.type_land,
+        }),
         [t],
     );
+    const typeChips = useMemo(
+        () =>
+            availableTypes
+                .filter((value) => value in typeLabelByKey)
+                .map((value) => ({
+                    value,
+                    label: typeLabelByKey[value as keyof typeof typeLabelByKey],
+                })),
+        [availableTypes, typeLabelByKey],
+    );
 
+    const cityZones = pageProps.propertySearchOptions?.cityZones ?? [];
     const cityOptions: SearchableFilterOption[] = useMemo(
         () => [
             { value: 'any', label: t.city_any },
-            { value: 'cluj', label: t.city_cluj },
-            { value: 'bucharest', label: t.city_bucharest },
-            { value: 'brasov', label: t.city_brasov },
-            { value: 'timisoara', label: t.city_timisoara },
-            { value: 'sibiu', label: t.city_sibiu },
-            { value: 'iasi', label: t.city_iasi },
-            { value: 'oradea', label: t.city_oradea },
-            { value: 'other', label: t.city_other },
+            ...cityZones.map((zone) => ({ value: zone, label: zone })),
         ],
-        [t],
+        [t, cityZones],
     );
 
     const portfolioHref = useMemo(

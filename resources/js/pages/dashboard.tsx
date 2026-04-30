@@ -1,7 +1,9 @@
 import { Head } from '@inertiajs/react';
+import { useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
+import { useAdminT } from '@/hooks/use-admin-translations';
 import {
     EyeOff,
     LayoutGrid,
@@ -9,38 +11,43 @@ import {
     Star,
 } from 'lucide-react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-    },
-];
-
 type DashboardProps = {
-    projectsPublishedCount: number;
+    listingsPublishedCount: number;
     testimonialsPublishedCount: number;
-    projectsDraftCount: number;
-    projectsCreatedLast30DaysCount: number;
+    listingsDraftCount: number;
+    listingsCreatedLast30DaysCount: number;
 };
 
 export default function Dashboard({
-    projectsPublishedCount,
+    listingsPublishedCount,
     testimonialsPublishedCount,
-    projectsDraftCount,
-    projectsCreatedLast30DaysCount,
+    listingsDraftCount,
+    listingsCreatedLast30DaysCount,
 }: DashboardProps) {
+    const t = useAdminT();
+
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            {
+                title: t('breadcrumb.dashboard'),
+                href: dashboard(),
+            },
+        ],
+        [t],
+    );
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
+            <Head title={t('meta.dashboard')} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="rounded-xl border border-sidebar-border/70 bg-background/40 p-4">
                     <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                         <div>
                             <h2 className="text-lg font-semibold text-foreground">
-                                Dashboard insights
+                                {t('dashboard.intro_title')}
                             </h2>
                             <p className="mt-1 text-xs text-muted-foreground">
-                                Counts for the current site locale, updated from your database.
+                                {t('dashboard.intro_body')}
                             </p>
                         </div>
                     </div>
@@ -49,30 +56,30 @@ export default function Dashboard({
                 <div className="grid auto-rows-min gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <MetricCard
                         icon={LayoutGrid}
-                        title="Published projects"
-                        description="Portfolio items visible on the public website"
-                        value={projectsPublishedCount}
+                        title={t('dashboard.metric_published_listings')}
+                        description={t('dashboard.metric_published_listings_desc')}
+                        value={listingsPublishedCount}
                         valueSuffix=""
                     />
                     <MetricCard
                         icon={Star}
-                        title="Published testimonials"
-                        description="Testimonials currently shown publicly"
+                        title={t('dashboard.metric_testimonials')}
+                        description={t('dashboard.metric_testimonials_desc')}
                         value={testimonialsPublishedCount}
                         valueSuffix=""
                     />
                     <MetricCard
                         icon={EyeOff}
-                        title="Draft projects"
-                        description="Portfolio items not yet published for this locale"
-                        value={projectsDraftCount}
+                        title={t('dashboard.metric_drafts')}
+                        description={t('dashboard.metric_drafts_desc')}
+                        value={listingsDraftCount}
                         valueSuffix=""
                     />
                     <MetricCard
                         icon={Sparkles}
-                        title="Projects created (30 days)"
-                        description="New portfolio items for this locale"
-                        value={projectsCreatedLast30DaysCount}
+                        title={t('dashboard.metric_new_30d')}
+                        description={t('dashboard.metric_new_30d_desc')}
+                        value={listingsCreatedLast30DaysCount}
                         valueSuffix=""
                     />
                 </div>

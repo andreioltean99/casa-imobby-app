@@ -1,5 +1,7 @@
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
 
@@ -14,25 +16,24 @@ type Props = {
 };
 
 export default function DashboardPrincipleEdit({ principle }: Props) {
-    const { props } = usePage<{ locale?: string; availableLocales?: string[] }>();
-    const currentLocale = props.locale ?? 'en';
-    const availableLocales = props.availableLocales?.length
-        ? props.availableLocales
-        : ['en', 'ro'];
-
-    const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Dashboard', href: dashboard() },
-        { title: 'About & Principles', href: '/dashboard/about' },
-        {
-            title: 'Edit principle',
-            href: `/dashboard/principles/${principle.id}/edit`,
-        },
-    ];
+    const t = useAdminT();
+    const breadcrumbs: BreadcrumbItem[] = useMemo(
+        () => [
+            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            {
+                title: t('principles.breadcrumb_parent'),
+                href: '/dashboard/about',
+            },
+            {
+                title: t('breadcrumb.edit_principle'),
+                href: `/dashboard/principles/${principle.id}/edit`,
+            },
+        ],
+        [t, principle.id],
+    );
 
     const { data, setData, put, processing, errors, delete: destroy } = useForm({
         text: principle.text ?? '',
-        sort_order:
-            principle.sort_order != null ? String(principle.sort_order) : '',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -41,53 +42,36 @@ export default function DashboardPrincipleEdit({ principle }: Props) {
     };
 
     const onDelete = () => {
-        if (!confirm('Delete this principle?')) return;
+        if (!confirm(t('principles.edit.delete_confirm'))) return;
         destroy(`/dashboard/principles/${principle.id}`);
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Edit principle – Dashboard" />
+            <Head title={t('meta.edit_principle')} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between gap-2">
                     <div>
-                        <h1 className="text-lg font-semibold">Edit principle</h1>
+                        <h1 className="text-lg font-semibold">
+                            {t('principles.edit.title')}
+                        </h1>
                         <p className="text-sm text-muted-foreground">
-                            Update this principle shown in the About section.
+                            {t('principles.edit.intro')}
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 rounded-full border border-border bg-background/80 px-1 py-0.5 text-[11px] font-medium text-muted-foreground">
-                            {availableLocales.map((code) => {
-                                const isActive = code === currentLocale;
-                                return (
-                                    <a
-                                        key={code}
-                                        href={`/lang/${code}`}
-                                        className={[
-                                            'inline-flex h-6 items-center justify-center rounded-full px-2 transition-colors',
-                                            isActive
-                                                ? 'bg-foreground text-background'
-                                                : 'hover:bg-muted hover:text-foreground',
-                                        ].join(' ')}
-                                    >
-                                        {code.toUpperCase()}
-                                    </a>
-                                );
-                            })}
-                        </div>
                         <button
                             type="button"
                             onClick={onDelete}
                             className="inline-flex items-center rounded-md border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/20"
                         >
-                            Delete
+                            {t('common.delete')}
                         </button>
                         <Link
                             href="/dashboard/about"
                             className="text-xs font-medium text-muted-foreground hover:text-foreground"
                         >
-                            Back to About & Principles
+                            {t('principles.edit.back')}
                         </Link>
                     </div>
                 </div>
@@ -96,7 +80,7 @@ export default function DashboardPrincipleEdit({ principle }: Props) {
                     <form onSubmit={submit} className="space-y-4">
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="text">
-                                Principle text
+                                {t('principles.edit.principle_text')}
                             </label>
                             <textarea
                                 id="text"
@@ -110,37 +94,19 @@ export default function DashboardPrincipleEdit({ principle }: Props) {
                                 <p className="text-xs text-red-500">{errors.text}</p>
                             )}
                         </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="sort_order">
-                                Sort order (optional)
-                            </label>
-                            <input
-                                id="sort_order"
-                                type="number"
-                                min={0}
-                                value={data.sort_order}
-                                onChange={(e) => setData('sort_order', e.target.value)}
-                                className="h-9 w-full max-w-[120px] rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                            />
-                            {errors.sort_order && (
-                                <p className="text-xs text-red-500">
-                                    {errors.sort_order}
-                                </p>
-                            )}
-                        </div>
                         <div className="flex justify-end gap-2 pt-2">
                             <Link
                                 href="/dashboard/about"
                                 className="inline-flex items-center rounded-md border border-sidebar-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted"
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </Link>
                             <button
                                 type="submit"
                                 disabled={processing}
                                 className="inline-flex items-center rounded-md bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-60"
                             >
-                                Save changes
+                                {t('principles.edit.save')}
                             </button>
                         </div>
                     </form>
