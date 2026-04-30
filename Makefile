@@ -1,4 +1,4 @@
-.PHONY: up-dev down-dev install up-prod up-prod-detached up-prod-fresh up-prod-detached-fresh
+.PHONY: up-dev down-dev install up-prod up-prod-detached up-prod-fresh up-prod-detached-fresh logs-prod logs-prod-app logs-prod-nginx
 
 DOCKER_COMPOSE_DEV := docker compose -f docker-compose.dev.yml
 DOCKER_COMPOSE_PROD := docker compose -f docker-compose.prod.yml
@@ -38,3 +38,12 @@ up-prod-detached-fresh:
 	$(DOCKER_COMPOSE_PROD) down -v || true
 	rm -rf vendor node_modules
 	$(DOCKER_COMPOSE_PROD) up --build -d
+
+logs-prod:
+	$(DOCKER_COMPOSE_PROD) logs -f
+
+logs-prod-app:
+	$(DOCKER_COMPOSE_PROD) logs -f app
+
+logs-prod-nginx:
+	$(DOCKER_COMPOSE_PROD) logs -f nginx

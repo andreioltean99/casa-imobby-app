@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
 const STORAGE_KEY = 'casa_imobby_lead_offer_modal_v1';
+const AUTO_OPEN_DELAY_MS = 60_000;
 
 /** Dispatched to open the lead offer dialog from anywhere (e.g. hero CTA). */
 export const OPEN_LEAD_OFFER_MODAL_EVENT = 'casa-imobby:open-lead-offer-modal';
@@ -97,7 +98,7 @@ export function LeadOfferModal() {
         if (hasSeen()) {
             return;
         }
-        const id = window.setTimeout(() => setOpen(true), 450);
+        const id = window.setTimeout(() => setOpen(true), AUTO_OPEN_DELAY_MS);
         return () => window.clearTimeout(id);
     }, []);
 
