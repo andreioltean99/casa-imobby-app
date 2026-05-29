@@ -1,5 +1,6 @@
-import { usePage } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { MapPin } from 'lucide-react';
+import type { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 
 type ContactSectionProps = {
@@ -10,9 +11,10 @@ type ContactSectionProps = {
 };
 
 export function ContactSection({ hideHeadingAndIntro = false, formIntro = null }: ContactSectionProps) {
-    const { translations, contact } = usePage().props as {
+    const { translations, contact, flash } = usePage().props as {
         translations?: any;
         contact?: any;
+        flash?: { contact_submitted?: boolean };
     };
     const tContact = translations?.contact ?? {};
     const tBrand = translations?.brand ?? {};
@@ -58,6 +60,25 @@ export function ContactSection({ hideHeadingAndIntro = false, formIntro = null }
     const landingTextareaClass =
         'min-h-[140px] rounded-lg border border-border bg-background px-4 py-3 text-base outline-none ring-offset-background transition-[box-shadow,border-color] focus-visible:border-brand/40 focus-visible:ring-2 focus-visible:ring-brand/30 focus-visible:ring-offset-2 dark:bg-background';
 
+    const form = useForm({
+        first_name: '',
+        last_name: '',
+        email: '',
+        message: '',
+        source: hideHeadingAndIntro ? 'contact' : 'home',
+    });
+
+    const submitContact = (e: FormEvent) => {
+        e.preventDefault();
+        form.post('/contact-messages', {
+            preserveScroll: true,
+            onSuccess: () => form.reset('first_name', 'last_name', 'email', 'message'),
+        });
+    };
+
+    const showSuccess = Boolean(flash?.contact_submitted);
+    const requiredMark = hideHeadingAndIntro;
+
     /** Landing home: gradient panel — larger form + logo (no street address on home). */
     if (!hideHeadingAndIntro) {
         return (
@@ -83,47 +104,77 @@ export function ContactSection({ hideHeadingAndIntro = false, formIntro = null }
                         )}
                     </div>
                     <div className="rounded-xl border border-border/70 bg-background/70 p-5 shadow-sm ring-1 ring-black/[0.03] sm:p-7 dark:bg-background/45 dark:ring-white/[0.04]">
-                        <form className="grid gap-4 sm:grid-cols-2">
+                        {showSuccess ? (
+                            <p className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-900 dark:text-emerald-100">
+                                {tContact.form?.success ??
+                                    'Thank you! Your message was received. We will get back to you soon.'}
+                            </p>
+                        ) : null}
+                        <form className="grid gap-4 sm:grid-cols-2" onSubmit={submitContact}>
                             <LandingField label={tContact.form?.first_name ?? 'First name'}>
                                 <input
                                     type="text"
+                                    required
                                     className={landingInputClass}
                                     placeholder={tContact.form?.first_name_placeholder ?? 'Alex'}
+                                    value={form.data.first_name}
+                                    onChange={(e) => form.setData('first_name', e.target.value)}
                                 />
+                                {form.errors.first_name ? (
+                                    <p className="text-xs text-destructive">{form.errors.first_name}</p>
+                                ) : null}
                             </LandingField>
                             <LandingField label={tContact.form?.last_name ?? 'Last name'}>
                                 <input
                                     type="text"
+                                    required
                                     className={landingInputClass}
                                     placeholder={tContact.form?.last_name_placeholder ?? 'Popescu'}
+                                    value={form.data.last_name}
+                                    onChange={(e) => form.setData('last_name', e.target.value)}
                                 />
-                            </LandingField>
-                            <LandingField label={tContact.form?.company ?? 'Company'}>
-                                <input
-                                    type="text"
-                                    className={landingInputClass}
-                                    placeholder={tContact.form?.company_placeholder ?? 'Company name'}
-                                />
+                                {form.errors.last_name ? (
+                                    <p className="text-xs text-destructive">{form.errors.last_name}</p>
+                                ) : null}
                             </LandingField>
                             <LandingField label={tContact.form?.email ?? 'Email'}>
                                 <input
                                     type="email"
+                                    required
                                     className={landingInputClass}
                                     placeholder={tContact.form?.email_placeholder ?? 'you@example.com'}
+                                    value={form.data.email}
+                                    onChange={(e) => form.setData('email', e.target.value)}
                                 />
+                                {form.errors.email ? (
+                                    <p className="text-xs text-destructive">{form.errors.email}</p>
+                                ) : null}
                             </LandingField>
                             <LandingField label={tContact.form?.message ?? 'Message'} className="sm:col-span-2">
                                 <textarea
+                                    required
                                     className={landingTextareaClass}
                                     placeholder={
                                         tContact.form?.message_placeholder ??
                                         'Tell us about your project, current challenges and timelines.'
                                     }
+                                    value={form.data.message}
+                                    onChange={(e) => form.setData('message', e.target.value)}
                                 />
+                                {form.errors.message ? (
+                                    <p className="text-xs text-destructive">{form.errors.message}</p>
+                                ) : null}
                             </LandingField>
                             <div className="sm:col-span-2 pt-1">
-                                <Button type="button" size="lg" className="w-full min-h-11 text-base sm:w-auto sm:min-w-[10rem]">
-                                    {tContact.form?.submit ?? 'Submit'}
+                                <Button
+                                    type="submit"
+                                    size="lg"
+                                    disabled={form.processing}
+                                    className="w-full min-h-11 text-base sm:w-auto sm:min-w-[10rem]"
+                                >
+                                    {form.processing
+                                        ? (tContact.form?.submitting ?? 'Sending…')
+                                        : (tContact.form?.submit ?? 'Submit')}
                                 </Button>
                             </div>
                         </form>
@@ -193,47 +244,79 @@ export function ContactSection({ hideHeadingAndIntro = false, formIntro = null }
                         {formIntro ? (
                             <p className="mb-4 text-center text-sm text-muted-foreground sm:text-left">{formIntro}</p>
                         ) : null}
-                        <form className="grid gap-3 text-sm sm:grid-cols-2">
-                            <Field label={`${tContact.form?.first_name ?? 'First name'} *`}>
+                        {showSuccess ? (
+                            <p className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-900 dark:text-emerald-100">
+                                {tContact.form?.success ??
+                                    'Thank you! Your message was received. We will get back to you soon.'}
+                            </p>
+                        ) : null}
+                        <form className="grid gap-3 text-sm sm:grid-cols-2" onSubmit={submitContact}>
+                            <Field
+                                label={`${tContact.form?.first_name ?? 'First name'}${requiredMark ? ' *' : ''}`}
+                            >
                                 <input
                                     type="text"
+                                    required
                                     className={inputClassCard}
                                     placeholder={tContact.form?.first_name_placeholder ?? 'Alex'}
+                                    value={form.data.first_name}
+                                    onChange={(e) => form.setData('first_name', e.target.value)}
                                 />
+                                {form.errors.first_name ? (
+                                    <p className="text-xs text-destructive">{form.errors.first_name}</p>
+                                ) : null}
                             </Field>
-                            <Field label={`${tContact.form?.last_name ?? 'Last name'} *`}>
+                            <Field
+                                label={`${tContact.form?.last_name ?? 'Last name'}${requiredMark ? ' *' : ''}`}
+                            >
                                 <input
                                     type="text"
+                                    required
                                     className={inputClassCard}
                                     placeholder={tContact.form?.last_name_placeholder ?? 'Popescu'}
+                                    value={form.data.last_name}
+                                    onChange={(e) => form.setData('last_name', e.target.value)}
                                 />
+                                {form.errors.last_name ? (
+                                    <p className="text-xs text-destructive">{form.errors.last_name}</p>
+                                ) : null}
                             </Field>
-                            <Field label={tContact.form?.company ?? 'Company'}>
-                                <input
-                                    type="text"
-                                    className={inputClassCard}
-                                    placeholder={tContact.form?.company_placeholder ?? 'Company name'}
-                                />
-                            </Field>
-                            <Field label={`${tContact.form?.email ?? 'Email'} *`}>
+                            <Field label={`${tContact.form?.email ?? 'Email'}${requiredMark ? ' *' : ''}`}>
                                 <input
                                     type="email"
+                                    required
                                     className={inputClassCard}
                                     placeholder={tContact.form?.email_placeholder ?? 'you@example.com'}
+                                    value={form.data.email}
+                                    onChange={(e) => form.setData('email', e.target.value)}
                                 />
+                                {form.errors.email ? (
+                                    <p className="text-xs text-destructive">{form.errors.email}</p>
+                                ) : null}
                             </Field>
-                            <Field label={`${tContact.form?.message ?? 'Message'} *`} className="sm:col-span-2">
+                            <Field
+                                label={`${tContact.form?.message ?? 'Message'}${requiredMark ? ' *' : ''}`}
+                                className="sm:col-span-2"
+                            >
                                 <textarea
+                                    required
                                     className="min-h-[96px] rounded-md border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 dark:bg-background"
                                     placeholder={
                                         tContact.form?.message_placeholder ??
                                         'Tell us about your project, current challenges and timelines.'
                                     }
+                                    value={form.data.message}
+                                    onChange={(e) => form.setData('message', e.target.value)}
                                 />
+                                {form.errors.message ? (
+                                    <p className="text-xs text-destructive">{form.errors.message}</p>
+                                ) : null}
                             </Field>
                             <div className="sm:col-span-2">
-                                <Button type="button" className="w-full sm:w-auto">
-                                    {tContact.form?.submit ?? 'Submit'}
+                                <Button type="submit" disabled={form.processing} className="w-full sm:w-auto">
+                                    {form.processing
+                                        ? (tContact.form?.submitting ?? 'Sending…')
+                                        : (tContact.form?.submit ?? 'Submit')}
                                 </Button>
                             </div>
                         </form>

@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Header } from '@/components/public/Header';
 import { Hero } from '@/components/public/Hero';
 import { EndToEndCard } from '@/components/public/EndToEndCard';
@@ -12,6 +12,7 @@ import { ContactSection } from '@/components/public/ContactSection';
 import { PropertySearchStrip } from '@/components/public/PropertySearchStrip';
 import { LeadOfferModal } from '@/components/public/LeadOfferModal';
 import { Footer } from '@/components/public/Footer';
+import { PublicSeoHead } from '@/components/public/PublicSeoHead';
 import { PROPERTIES_INDEX_PATH } from '@/lib/public-properties-path';
 
 type Props = {
@@ -31,13 +32,32 @@ export default function PublicHome({
     aboutItems,
     principles,
 }: Props) {
-    const { props } = usePage<{ translations?: Record<string, unknown> }>();
+    const { props } = usePage<{ translations?: Record<string, unknown>; appUrl?: string }>();
     const tPortfolio = (props.translations?.portfolio as Record<string, string> | undefined) ?? {};
     const viewAllLabel = tPortfolio.view_all ?? 'View full unit list';
+    const appUrl = (props.appUrl ?? '').replace(/\/+$/, '') || 'https://casa-imobby.ro';
 
     return (
         <>
-            <Head title="Casa Imobby – Agenție imobiliară" />
+            <PublicSeoHead
+                title="Casa Imobby – Agenție imobiliară"
+                description="Casa Imobby te ajută să cumperi, vinzi sau închiriezi proprietăți în Cluj-Napoca și împrejurimi. Vezi oferte, filtrează proprietăți și cere consultanță."
+                canonicalPath="/"
+                jsonLd={[
+                    {
+                        '@context': 'https://schema.org',
+                        '@type': 'RealEstateAgent',
+                        name: 'Casa Imobby',
+                        url: `${appUrl}/`,
+                    },
+                    {
+                        '@context': 'https://schema.org',
+                        '@type': 'WebSite',
+                        name: 'Casa Imobby',
+                        url: `${appUrl}/`,
+                    },
+                ]}
+            />
             <div className="min-h-screen bg-gradient-to-b from-background via-background to-neutral-50 text-foreground dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-900">
                 <LeadOfferModal />
                 <Header />

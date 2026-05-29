@@ -13,6 +13,7 @@ class LeadSubmission extends Model
         'budget',
         'newsletter',
         'terms_accepted',
+        'read_at',
     ];
 
     protected function casts(): array
@@ -20,6 +21,7 @@ class LeadSubmission extends Model
         return [
             'newsletter' => 'boolean',
             'terms_accepted' => 'boolean',
+            'read_at' => 'datetime',
         ];
     }
 }

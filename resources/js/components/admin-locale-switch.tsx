@@ -1,5 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import { adminLocaleSwitchUrl } from '@/lib/admin-locale-url';
+import { AVAILABLE_LOCALES, DEFAULT_LOCALE } from '@/lib/default-locale';
 import { useAdminT } from '@/hooks/use-admin-translations';
 
 export function AdminLocaleSwitch() {
@@ -8,8 +9,8 @@ export function AdminLocaleSwitch() {
         locale?: string;
         availableLocales?: string[];
     };
-    const currentLocale = locale ?? 'en';
-    const locales = availableLocales?.length ? availableLocales : ['en', 'ro'];
+    const currentLocale = locale ?? DEFAULT_LOCALE;
+    const locales = availableLocales?.length ? availableLocales : [...AVAILABLE_LOCALES];
 
     return (
         <div className="ml-auto flex items-center gap-2">

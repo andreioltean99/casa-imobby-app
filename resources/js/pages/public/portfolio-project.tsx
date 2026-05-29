@@ -1,4 +1,4 @@
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import {
     Bell,
     CheckCircle2,
@@ -12,6 +12,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
+import { PublicSeoHead } from '@/components/public/PublicSeoHead';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -25,6 +26,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PROPERTIES_INDEX_PATH } from '@/lib/public-properties-path';
+import {
+    listingPublicHref,
+    listingPublicRefLabel,
+} from '@/lib/listing-public-url';
 
 type GalleryImage = {
     id: number;
@@ -41,6 +46,7 @@ type PortfolioItem = {
     short_description: string | null;
     description: string | null;
     listing_specs?: ListingSpec[] | null;
+    external_listing_ref?: string | null;
     external_storia_url?: string | null;
     external_imobiliare_url?: string | null;
     external_olx_url?: string | null;
@@ -79,10 +85,7 @@ type Props = {
 };
 
 function listingHref(item: { id: number; slug: string | null }) {
-    if (item.slug && item.slug.trim().length > 0) {
-        return `/portfolio/${item.slug}`;
-    }
-    return `/portfolio/${item.id}`;
+    return listingPublicHref(item);
 }
 
 function stripHtml(html: string) {
@@ -316,7 +319,50 @@ export default function PortfolioProjectPage({
     const leadText =
         plainLead.length > 280 ? `${plainLead.slice(0, 280).trimEnd()}…` : plainLead;
 
-    const refLabel = `${tPortfolio.listing_ref ?? 'Ref.'} CIM-${portfolioItem.id}`;
+    const refLabel = useMemo(
+        () => listingPublicRefLabel(portfolioItem, tPortfolio.listing_ref ?? 'Ref.'),
+        [portfolioItem, tPortfolio.listing_ref],
+    );
+    const pageDescription =
+        leadText ||
+        (tPortfolio.section_body ?? 'Vezi detalii complete despre această proprietate publicată de Casa Imobby.');
+    const canonicalPath = listingHref({ id: portfolioItem.id, slug: portfolioItem.slug });
+
+    const normalizeSpecLabel = useCallback((label: string) => label.trim().toLocaleLowerCase(appLocale ?? 'ro'), [appLocale]);
+
+    const characteristicRows = useMemo(() => {
+        const manualRows = Array.isArray(listing_specs)
+            ? listing_specs.filter(
+                  (row) =>
+                      row &&
+                      typeof row.label === 'string' &&
+                      typeof row.value === 'string' &&
+                      (row.label.trim() || row.value.trim()),
+              )
+            : [];
+        const manualLabels = new Set(manualRows.map((row) => normalizeSpecLabel(row.label)));
+        const dynamicRows = (portfolioItem.property_filter_values ?? [])
+            .map((row) => {
+                const filter = row.property_filter;
+                if (!filter || !row.value) {
+                    return null;
+                }
+                const label =
+                    appLocale === 'ro' ? filter.name_ro || filter.name_en : filter.name_en || filter.name_ro;
+                if (manualLabels.has(normalizeSpecLabel(label))) {
+                    return null;
+                }
+                return { label, value: row.value };
+            })
+            .filter((row): row is { label: string; value: string } => !!row);
+
+        return [...manualRows, ...dynamicRows];
+    }, [listing_specs, portfolioItem.property_filter_values, appLocale, normalizeSpecLabel]);
+
+    const showListingDate =
+        typeof date === 'string' &&
+        date.trim() !== '' &&
+        !/^\d{4}$/.test(date.trim());
 
     const formattedPrice = useMemo(() => {
         if (price === null || price === undefined || price === '') {
@@ -334,30 +380,7 @@ export default function PortfolioProjectPage({
         }
     }, [price, appLocale]);
 
-    const specsRows = useMemo(() => {
-        if (!Array.isArray(listing_specs)) {
-            return [];
-        }
-        return listing_specs.filter(
-            (row) =>
-                row &&
-                typeof row.label === 'string' &&
-                typeof row.value === 'string' &&
-                (row.label.trim() || row.value.trim()),
-        );
-    }, [listing_specs]);
-    const dynamicSpecsRows = useMemo(
-        () =>
-            (portfolioItem.property_filter_values ?? [])
-                .map((row) => {
-                    const filter = row.property_filter;
-                    if (!filter || !row.value) return null;
-                    const label = appLocale === 'ro' ? filter.name_ro || filter.name_en : filter.name_en || filter.name_ro;
-                    return { label, value: row.value };
-                })
-                .filter((row): row is { label: string; value: string } => !!row),
-        [portfolioItem.property_filter_values, appLocale],
-    );
+    const specsRows = characteristicRows;
 
     const galleryList = gallery ?? [];
 
@@ -369,7 +392,22 @@ export default function PortfolioProjectPage({
 
     return (
         <>
-            <Head title={`${title} – Casa Imobby`} />
+            <PublicSeoHead
+                title={`${title} – Casa Imobby`}
+                description={pageDescription}
+                canonicalPath={canonicalPath}
+                imagePath={image_path ? `/storage/${image_path}` : '/logo-casa-imobby-contact.png'}
+                type="article"
+                jsonLd={{
+                    '@context': 'https://schema.org',
+                    '@type': 'Offer',
+                    name: title,
+                    description: pageDescription,
+                    availability: 'https://schema.org/InStock',
+                    priceCurrency: 'EUR',
+                    url: canonicalPath,
+                }}
+            />
             <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-background via-background to-neutral-50 text-foreground dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-900">
                 <Header />
 
@@ -410,7 +448,12 @@ export default function PortfolioProjectPage({
                                             <span className="text-foreground">{listingUpdated}</span>
                                         </span>
                                     ) : null}
-                                    {date ? <span>{date}</span> : null}
+                                    {showListingDate ? (
+                                        <span>
+                                            {(tPortfolio.listing_date ?? tPortfolio.pdf_meta_date ?? 'Date') + ': '}
+                                            <span className="text-foreground">{date}</span>
+                                        </span>
+                                    ) : null}
                                     {duration ? (
                                         <span>
                                             {(tPortfolio.duration_label ?? 'Duration:') + ' '}
@@ -445,6 +488,8 @@ export default function PortfolioProjectPage({
                                     <img
                                         src={`/storage/${image_path}`}
                                         alt=""
+                                        fetchPriority="high"
+                                        decoding="async"
                                         className="aspect-[4/3] w-full max-h-[min(88vh,40rem)] object-cover transition duration-300 group-hover:scale-[1.01] sm:aspect-[3/2] sm:max-h-[min(90vh,46rem)] lg:aspect-[16/10] lg:max-h-[min(92vh,52rem)]"
                                     />
                                     <span className="absolute bottom-3 right-3 rounded-full bg-black/55 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
@@ -488,6 +533,8 @@ export default function PortfolioProjectPage({
                                                     <img
                                                         src={`/storage/${img.image_path}`}
                                                         alt=""
+                                                        loading="lazy"
+                                                        decoding="async"
                                                         className="aspect-[4/3] h-full w-full object-cover"
                                                     />
                                                 </button>
@@ -497,7 +544,7 @@ export default function PortfolioProjectPage({
                                 </section>
                             ) : null}
 
-                            {specsRows.length > 0 || dynamicSpecsRows.length > 0 ? (
+                            {specsRows.length > 0 ? (
                                 <section className="space-y-3" aria-labelledby="listing-specs-heading">
                                     <h2
                                         id="listing-specs-heading"
@@ -506,7 +553,7 @@ export default function PortfolioProjectPage({
                                         {tPortfolio.specs_heading ?? 'Characteristics'}
                                     </h2>
                                     <dl className="divide-y divide-border/80 rounded-xl border border-border/70 bg-card/40 text-sm shadow-sm ring-1 ring-black/[0.03] dark:bg-card/30 dark:ring-white/[0.04]">
-                                        {[...specsRows, ...dynamicSpecsRows].map((row, index) => (
+                                        {specsRows.map((row, index) => (
                                             <div
                                                 key={`${row.label}-${index}`}
                                                 className="grid gap-1 px-4 py-3 sm:grid-cols-[minmax(0,11rem)_1fr] sm:items-baseline sm:gap-6"
@@ -632,6 +679,8 @@ export default function PortfolioProjectPage({
                                                 <img
                                                     src={`/storage/${item.image_path}`}
                                                     alt=""
+                                                    loading="lazy"
+                                                    decoding="async"
                                                     className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                                                 />
                                             </div>

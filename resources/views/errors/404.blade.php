@@ -1,6 +1,6 @@
 @php
-    $availableLocales = config('app.available_locales', ['en', 'ro']);
-    $selectedLocale = session('locale')
+    $availableLocales = config('app.available_locales', ['ro', 'en']);
+    $selectedLocale = session('site_locale')
         ?? request()->cookie('site_locale')
         ?? app()->getLocale();
     if (! in_array($selectedLocale, $availableLocales, true)) {

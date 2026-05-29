@@ -133,7 +133,7 @@ class PortfolioDashboardController extends Controller
     {
         $locale = app()->getLocale();
         $data = $this->validatedData($request);
-        $data['slug'] = $this->uniqueSlug(Str::slug($data['title']), $locale);
+        $data['slug'] = 'pending-'.Str::lower(Str::random(16));
         $data['locale'] = $locale;
         $data['listing_specs'] = $this->parseListingSpecsJson($request->input('listing_specs_json'));
         $data['external_listing_ref'] = $this->nullableString($data['external_listing_ref'] ?? null);
@@ -183,9 +183,6 @@ class PortfolioDashboardController extends Controller
         $oldPrice = $portfolioItem->price;
 
         $data = $this->validatedData($request);
-        if (isset($data['title']) && $portfolioItem->title !== $data['title']) {
-            $data['slug'] = $this->uniqueSlug(Str::slug($data['title']), $locale, $portfolioItem->id);
-        }
         $data['locale'] = $locale;
         $data['listing_specs'] = $this->parseListingSpecsJson($request->input('listing_specs_json'));
         $data['external_listing_ref'] = $this->nullableString($data['external_listing_ref'] ?? null);
@@ -210,6 +207,7 @@ class PortfolioDashboardController extends Controller
         $portfolioItem->update($data);
         $this->syncPropertyFilterValues($portfolioItem, $request->input('property_filters_json'));
         $portfolioItem->refresh();
+        $portfolioItem->assignPublicSlug();
 
         PortfolioPriceAlertSubscription::notifySubscribersIfPriceDropped(
             $portfolioItem,

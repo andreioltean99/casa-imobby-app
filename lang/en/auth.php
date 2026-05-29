@@ -1,0 +1,18 @@
+<?php
+
+return [
+    'failed' => 'These credentials do not match our records.',
+    'password' => 'The provided password is incorrect.',
+    'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
+    'login' => [
+        'title' => 'Log in to your account',
+        'description' => 'Enter your email and password below to log in',
+        'email' => 'Email address',
+        'email_placeholder' => 'email@example.com',
+        'password' => 'Password',
+        'password_placeholder' => 'Password',
+        'remember' => 'Remember me',
+        'submit' => 'Log in',
+        'forgot' => 'Forgot password?',
+    ],
+];

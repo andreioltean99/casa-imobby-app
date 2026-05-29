@@ -6,6 +6,8 @@ import {
     Building2,
     Briefcase,
     FileText,
+    Inbox,
+    MessageSquare,
     Phone,
     Tags,
     Users,
@@ -29,7 +31,13 @@ import { dashboard } from '@/routes';
 
 export function AppSidebar() {
     const t = useAdminT();
-    const { auth } = usePage().props;
+    const { auth, adminUnread } = usePage().props as {
+        auth?: { user?: { email?: string | null } | null };
+        adminUnread?: {
+            leadSubmissions?: number;
+            contactMessages?: number;
+        } | null;
+    };
 
     const dashboardNavItems: NavItem[] = useMemo(
         () => [
@@ -38,8 +46,20 @@ export function AppSidebar() {
                 href: dashboard(),
                 icon: LayoutGrid,
             },
+            {
+                title: t('nav.lead_submissions'),
+                href: '/dashboard/lead-submissions',
+                icon: MessageSquare,
+                unreadCount: adminUnread?.leadSubmissions ?? 0,
+            },
+            {
+                title: t('nav.contact_messages'),
+                href: '/dashboard/contact-messages',
+                icon: Inbox,
+                unreadCount: adminUnread?.contactMessages ?? 0,
+            },
         ],
-        [t],
+        [t, adminUnread?.leadSubmissions, adminUnread?.contactMessages],
     );
 
     const websiteNavItems: NavItem[] = useMemo(
@@ -101,8 +121,7 @@ export function AppSidebar() {
 
     const allowedEmails = [
         'andrei.oltean@aao-soft.com',
-        'admin@casa-imobby.ro',
-        'pocolaoctavian@gmail.com',
+        'admin@casa-imobby.ro'
     ].map((e) => e.toLowerCase());
 
     const canManageUsers = auth?.user?.email

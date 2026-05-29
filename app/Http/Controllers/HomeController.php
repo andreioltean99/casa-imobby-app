@@ -92,7 +92,7 @@ class HomeController extends Controller
             ],
             'translations' => trans('website'),
             'locale' => app()->getLocale(),
-            'availableLocales' => config('app.available_locales', ['en', 'ro']),
+            'availableLocales' => config('app.available_locales', ['ro', 'en']),
         ]);
     }
 

@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useMemo } from 'react';
+import { AdminLocalizedNameFields } from '@/components/admin-localized-name-fields';
 import AppLayout from '@/layouts/app-layout';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
@@ -10,7 +11,6 @@ const BASE = '/dashboard/property-characteristics';
 export default function PropertyFiltersCreate() {
     const t = useAdminT();
     const { data, setData, post, processing, errors } = useForm({
-        key: '',
         name_en: '',
         name_ro: '',
         is_active: true,
@@ -41,35 +41,58 @@ export default function PropertyFiltersCreate() {
                     </Link>
                 </div>
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-6 dark:border-sidebar-border">
-                    <form onSubmit={(e) => { e.preventDefault(); post(BASE); }} className="max-w-xl space-y-4">
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="characteristic_key">
-                                {t('property_filters.form.key')}
-                            </label>
-                            <input id="characteristic_key" value={data.key} onChange={(e) => setData('key', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))} className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm" placeholder={t('property_filters.form.key')} />
-                        </div>
-                        {errors.key ? <p className="text-xs text-red-500">{errors.key}</p> : null}
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="characteristic_name_en">
-                                {t('property_filters.form.name_en')}
-                            </label>
-                            <input id="characteristic_name_en" value={data.name_en} onChange={(e) => setData('name_en', e.target.value)} className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm" placeholder={t('property_filters.form.name_en')} />
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="characteristic_name_ro">
-                                {t('property_filters.form.name_ro')}
-                            </label>
-                            <input id="characteristic_name_ro" value={data.name_ro} onChange={(e) => setData('name_ro', e.target.value)} className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm" placeholder={t('property_filters.form.name_ro')} />
-                        </div>
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            post(BASE);
+                        }}
+                        className="max-w-xl space-y-4"
+                    >
+                        <AdminLocalizedNameFields
+                            idPrefix="characteristic"
+                            nameRo={data.name_ro}
+                            nameEn={data.name_en}
+                            onNameRoChange={(value) => setData('name_ro', value)}
+                            onNameEnChange={(value) => setData('name_en', value)}
+                            errors={errors}
+                        />
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="characteristic_sort_order">
                                 {t('property_filters.form.sort_order')}
                             </label>
-                            <input id="characteristic_sort_order" value={data.sort_order} onChange={(e) => setData('sort_order', e.target.value)} className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm" placeholder={t('property_filters.form.sort_order')} />
+                            <input
+                                id="characteristic_sort_order"
+                                value={data.sort_order}
+                                onChange={(e) => setData('sort_order', e.target.value)}
+                                className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm"
+                                placeholder={t('property_filters.form.sort_order')}
+                            />
                         </div>
-                        <label className="flex items-center gap-2 text-xs"><input id="characteristic_is_active" type="checkbox" checked={data.is_active} onChange={(e) => setData('is_active', e.target.checked)} />{t('common.active')}</label>
-                        <label className="flex items-center gap-2 text-xs"><input id="characteristic_is_searchable" type="checkbox" checked={data.is_searchable} onChange={(e) => setData('is_searchable', e.target.checked)} />{t('common.searchable')}</label>
-                        <button type="submit" disabled={processing} className="inline-flex rounded-md bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground">{t('common.save')}</button>
+                        <label className="flex items-center gap-2 text-xs">
+                            <input
+                                id="characteristic_is_active"
+                                type="checkbox"
+                                checked={data.is_active}
+                                onChange={(e) => setData('is_active', e.target.checked)}
+                            />
+                            {t('common.active')}
+                        </label>
+                        <label className="flex items-center gap-2 text-xs">
+                            <input
+                                id="characteristic_is_searchable"
+                                type="checkbox"
+                                checked={data.is_searchable}
+                                onChange={(e) => setData('is_searchable', e.target.checked)}
+                            />
+                            {t('common.searchable')}
+                        </label>
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="inline-flex rounded-md bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground"
+                        >
+                            {t('common.save')}
+                        </button>
                     </form>
                 </div>
             </div>

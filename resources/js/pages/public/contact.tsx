@@ -1,7 +1,8 @@
-import { Head, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { ContactSection } from '@/components/public/ContactSection';
 import { Footer } from '@/components/public/Footer';
 import { Header } from '@/components/public/Header';
+import { PublicSeoHead } from '@/components/public/PublicSeoHead';
 
 type PageProps = {
     translations?: any;
@@ -44,7 +45,11 @@ export default function PublicContactPage() {
 
     return (
         <>
-            <Head title={`${panelTitle} – ${siteName}`} />
+            <PublicSeoHead
+                title={`${panelTitle} – ${siteName}`}
+                description="Contactează echipa Casa Imobby pentru cumpărare, vânzare sau închiriere de proprietăți. Îți răspundem rapid cu pași concreți."
+                canonicalPath="/contact"
+            />
             <div className="min-h-screen bg-gradient-to-b from-background via-background to-neutral-50 text-foreground dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-900">
                 <Header />
 

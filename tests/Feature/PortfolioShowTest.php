@@ -21,7 +21,7 @@ class PortfolioShowTest extends TestCase
 
         $response = $this->get(route('portfolio.show', ['slug' => (string) $item->id]));
 
-        $response->assertOk();
+        $response->assertRedirect(route('portfolio.show', ['slug' => $item->publicUrlSegment()]));
     }
 
     public function test_portfolio_show_returns_404_when_item_is_unpublished(): void
@@ -53,10 +53,10 @@ class PortfolioShowTest extends TestCase
                 ->component('public/portfolio-project')
                 ->where('portfolioItem.listing_specs.0.label', 'Nr. camere')
                 ->where('portfolioItem.listing_specs.0.value', '2')
-                ->where('portfolioPdfUrl', route('portfolio.pdf', ['identifier' => $item->slug]))
+                ->where('portfolioPdfUrl', route('portfolio.pdf', ['identifier' => $item->publicUrlSegment()]))
                 ->where(
                     'portfolioPriceAlertUrl',
-                    route('portfolio.price-alerts.store', ['identifier' => $item->slug]),
+                    route('portfolio.price-alerts.store', ['identifier' => $item->publicUrlSegment()]),
                 ));
     }
 

@@ -1,5 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
+import { AdminLocalizedNameCell, adminLocalizedPrimaryName } from '@/components/admin-localized-name-fields';
 import AppLayout from '@/layouts/app-layout';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
@@ -9,7 +10,6 @@ const BASE = '/dashboard/property-characteristics';
 
 type PropertyFilterRow = {
     id: number;
-    key: string;
     name_en: string;
     name_ro: string;
     is_active: boolean;
@@ -34,8 +34,8 @@ export default function PropertyFiltersIndex({ filters }: Props) {
         [t],
     );
 
-    const onDelete = (id: number, key: string) => {
-        if (!confirm(t('property_filters.index.delete_confirm', { key }))) {
+    const onDelete = (id: number, name: string) => {
+        if (!confirm(t('property_filters.index.delete_confirm', { name }))) {
             return;
         }
         router.delete(`${BASE}/${id}`);
@@ -55,7 +55,10 @@ export default function PropertyFiltersIndex({ filters }: Props) {
                         <h1 className="text-lg font-semibold">{t('property_filters.index.title')}</h1>
                         <p className="text-sm text-muted-foreground">{t('property_filters.index.description')}</p>
                     </div>
-                    <Link href={`${BASE}/create`} className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90">
+                    <Link
+                        href={`${BASE}/create`}
+                        className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
+                    >
                         {t('property_filters.index.add')}
                     </Link>
                 </div>
@@ -64,9 +67,7 @@ export default function PropertyFiltersIndex({ filters }: Props) {
                     <table className="min-w-full border-collapse text-xs">
                         <thead>
                             <tr className="border-b border-sidebar-border/70 bg-muted/40 text-left text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                                <th className="px-4 py-2">{t('common.key')}</th>
-                                <th className="px-4 py-2">{t('common.english')}</th>
-                                <th className="px-4 py-2">{t('common.romanian')}</th>
+                                <th className="px-4 py-2">{t('common.name')}</th>
                                 <th className="px-4 py-2">{t('common.active')}</th>
                                 <th className="px-4 py-2">{t('common.searchable')}</th>
                                 <th className="px-4 py-2 text-right">{t('common.actions')}</th>
@@ -75,9 +76,9 @@ export default function PropertyFiltersIndex({ filters }: Props) {
                         <tbody>
                             {filters.map((f) => (
                                 <tr key={f.id} className="border-b border-sidebar-border/50 hover:bg-muted/30">
-                                    <td className="px-4 py-2 font-mono text-[11px]">{f.key}</td>
-                                    <td className="px-4 py-2 text-sm">{f.name_en}</td>
-                                    <td className="px-4 py-2 text-sm">{f.name_ro}</td>
+                                    <td className="max-w-[16rem] px-4 py-2">
+                                        <AdminLocalizedNameCell nameRo={f.name_ro} nameEn={f.name_en} />
+                                    </td>
                                     <td className="px-4 py-2">{f.is_active ? t('common.yes') : t('common.no')}</td>
                                     <td className="px-4 py-2">{f.is_searchable ? t('common.yes') : t('common.no')}</td>
                                     <td className="px-4 py-2 text-right">
@@ -85,7 +86,17 @@ export default function PropertyFiltersIndex({ filters }: Props) {
                                             {t('common.edit')}
                                         </Link>
                                         {' · '}
-                                        <button type="button" onClick={() => onDelete(f.id, f.key)} className="text-destructive hover:underline">
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                onDelete(
+                                                    f.id,
+                                                    adminLocalizedPrimaryName(f.name_ro, f.name_en) ||
+                                                        String(f.id),
+                                                )
+                                            }
+                                            className="text-destructive hover:underline"
+                                        >
                                             {t('common.delete')}
                                         </button>
                                     </td>

@@ -98,7 +98,7 @@ class PortfolioController extends Controller
             'searchablePropertyFilters' => $this->searchableFilterOptionsWithValues($searchableFilters),
             'translations' => trans('website'),
             'locale' => app()->getLocale(),
-            'availableLocales' => config('app.available_locales', ['en', 'ro']),
+            'availableLocales' => config('app.available_locales', ['ro', 'en']),
         ]);
     }
 
@@ -311,9 +311,21 @@ class PortfolioController extends Controller
     {
         $portfolioItem = $this->resolvePublishedListing($identifier);
 
+        $canonicalSegment = $portfolioItem->publicUrlSegment();
+        if (Str::lower(trim(rawurldecode($identifier))) !== Str::lower($canonicalSegment)) {
+            return redirect()->route('portfolio.show', ['slug' => $canonicalSegment], 301);
+        }
+
         $portfolioItem->load([
-            'gallery' => fn ($q) => $q->orderByRaw('COALESCE(sort_order, 999999)')->orderBy('id'),
-            'propertyFilterValues.propertyFilter',
+            'gallery' => fn ($q) => $q
+                ->select(['id', 'portfolio_item_id', 'image_path', 'sort_order'])
+                ->orderByRaw('COALESCE(sort_order, 999999)')
+                ->orderBy('id'),
+            'propertyFilterValues' => fn ($q) => $q
+                ->select(['id', 'portfolio_item_id', 'property_filter_id', 'value', 'sort_order'])
+                ->orderBy('sort_order')
+                ->orderBy('id'),
+            'propertyFilterValues.propertyFilter' => fn ($q) => $q->select(['id', 'key', 'name_en', 'name_ro']),
         ]);
 
         $similarItems = PortfolioItem::query()
@@ -355,7 +367,7 @@ class PortfolioController extends Controller
 
         $listingUpdated = $portfolioItem->updated_at?->locale(app()->getLocale())->translatedFormat('d M Y');
 
-        $pdfIdentifier = $portfolioItem->slug !== '' ? $portfolioItem->slug : (string) $portfolioItem->id;
+        $pdfIdentifier = $portfolioItem->publicUrlSegment();
 
         return Inertia::render('public/portfolio-project', [
             'portfolioItem' => $portfolioItem,
@@ -364,9 +376,12 @@ class PortfolioController extends Controller
             'listingUpdated' => $listingUpdated,
             'portfolioPdfUrl' => route('portfolio.pdf', ['identifier' => $pdfIdentifier]),
             'portfolioPriceAlertUrl' => route('portfolio.price-alerts.store', ['identifier' => $pdfIdentifier]),
-            'translations' => trans('website'),
+            'translations' => [
+                'portfolio' => trans('website.portfolio'),
+                'units' => trans('website.units'),
+            ],
             'locale' => app()->getLocale(),
-            'availableLocales' => config('app.available_locales', ['en', 'ro']),
+            'availableLocales' => config('app.available_locales', ['ro', 'en']),
         ]);
     }
 
@@ -402,7 +417,7 @@ class PortfolioController extends Controller
         $descriptionPlain = trim(preg_replace("/\n{3,}/", "\n\n", html_entity_decode(strip_tags($descriptionHtml))));
 
         $listingUrl = route('portfolio.show', [
-            'slug' => $portfolioItem->slug !== '' ? $portfolioItem->slug : (string) $portfolioItem->id,
+            'slug' => $portfolioItem->publicUrlSegment(),
         ], true);
 
         $pdf = Pdf::loadView('pdf.portfolio-listing', [

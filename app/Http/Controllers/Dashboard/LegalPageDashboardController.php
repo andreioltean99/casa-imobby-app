@@ -24,7 +24,8 @@ class LegalPageDashboardController extends Controller
             ],
         ];
 
-        $defaults = $defaultsByLocale[$locale] ?? $defaultsByLocale['en'];
+        $fallback = config('app.fallback_locale', 'ro');
+        $defaults = $defaultsByLocale[$locale] ?? $defaultsByLocale[$fallback] ?? $defaultsByLocale['ro'];
 
         $page = LegalPage::firstOrCreate(
             ['type' => 'terms', 'locale' => $locale],
@@ -75,7 +76,8 @@ class LegalPageDashboardController extends Controller
             ],
         ];
 
-        $defaults = $defaultsByLocale[$locale] ?? $defaultsByLocale['en'];
+        $fallback = config('app.fallback_locale', 'ro');
+        $defaults = $defaultsByLocale[$locale] ?? $defaultsByLocale[$fallback] ?? $defaultsByLocale['ro'];
 
         $page = LegalPage::firstOrCreate(
             ['type' => 'privacy', 'locale' => $locale],

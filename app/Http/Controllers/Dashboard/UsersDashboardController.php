@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -50,7 +49,8 @@ class UsersDashboardController extends Controller
         User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => Hash::make($data['password']),
+            'password' => $data['password'],
+            'email_verified_at' => now(),
         ]);
 
         return redirect()
@@ -88,7 +88,7 @@ class UsersDashboardController extends Controller
         ];
 
         if (! empty($data['password'])) {
-            $payload['password'] = Hash::make($data['password']);
+            $payload['password'] = $data['password'];
         }
 
         $user->update($payload);

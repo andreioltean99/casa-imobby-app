@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\PortfolioItem;
 use App\Models\PortfolioListingCategory;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class PortfolioListingCategoryDashboardController extends Controller
@@ -15,7 +14,7 @@ class PortfolioListingCategoryDashboardController extends Controller
     {
         $categories = PortfolioListingCategory::query()
             ->ordered()
-            ->get(['id', 'key', 'name_en', 'name_ro', 'sort_order', 'is_active']);
+            ->get(['id', 'name_en', 'name_ro', 'sort_order', 'is_active']);
 
         return Inertia::render('dashboard/listing-categories', [
             'categories' => $categories,
@@ -30,19 +29,14 @@ class PortfolioListingCategoryDashboardController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'key' => [
-                'required',
-                'string',
-                'max:64',
-                'regex:/^[a-z0-9_]+$/',
-                Rule::unique('portfolio_listing_categories', 'key'),
-            ],
-            'name_en' => ['required', 'string', 'max:255'],
+            'name_en' => ['nullable', 'string', 'max:255'],
             'name_ro' => ['required', 'string', 'max:255'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:999999'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
+        $data['name_en'] = trim((string) ($data['name_en'] ?? ''));
+        $data['key'] = PortfolioListingCategory::generateUniqueKey();
         $data['is_active'] = $request->boolean('is_active');
         $data['sort_order'] = $data['sort_order'] ?? 0;
 
@@ -56,19 +50,26 @@ class PortfolioListingCategoryDashboardController extends Controller
     public function edit(PortfolioListingCategory $listingCategory)
     {
         return Inertia::render('dashboard/listing-categories-edit', [
-            'listingCategory' => $listingCategory,
+            'listingCategory' => $listingCategory->only([
+                'id',
+                'name_en',
+                'name_ro',
+                'sort_order',
+                'is_active',
+            ]),
         ]);
     }
 
     public function update(Request $request, PortfolioListingCategory $listingCategory)
     {
         $data = $request->validate([
-            'name_en' => ['required', 'string', 'max:255'],
+            'name_en' => ['nullable', 'string', 'max:255'],
             'name_ro' => ['required', 'string', 'max:255'],
             'sort_order' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:999999'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
+        $data['name_en'] = trim((string) ($data['name_en'] ?? ''));
         $data['is_active'] = $request->boolean('is_active');
 
         $listingCategory->update($data);

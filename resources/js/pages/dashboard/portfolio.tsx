@@ -223,8 +223,7 @@ export default function DashboardPortfolio({
                                             </td>
                                             <td className="max-w-[16rem] px-4 py-2 text-[11px] leading-snug text-muted-foreground">
                                                 {item.listing_category
-                                                    ? (categoryTitles?.[item.listing_category] ??
-                                                      item.listing_category)
+                                                    ? (categoryTitles?.[item.listing_category] ?? t('common.dash'))
                                                     : t('common.dash')}
                                             </td>
                                             <td className="px-4 py-2 text-muted-foreground">

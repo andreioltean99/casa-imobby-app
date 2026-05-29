@@ -7,11 +7,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class PortfolioItem extends Model
 {
     /** @use HasFactory<PortfolioItemFactory> */
     use HasFactory;
+
+    public const PUBLIC_REF_PREFIX = 'CIMB';
 
     protected $fillable = [
         'title',
@@ -70,20 +73,103 @@ class PortfolioItem extends Model
             ->withTimestamps();
     }
 
+    protected static function booted(): void
+    {
+        static::created(function (self $item): void {
+            $item->assignPublicSlug();
+        });
+    }
+
+    public function publicReference(): string
+    {
+        $external = trim((string) ($this->external_listing_ref ?? ''));
+
+        if ($external !== '') {
+            return $external;
+        }
+
+        return self::PUBLIC_REF_PREFIX.'-'.$this->id;
+    }
+
+    public function publicUrlSegment(): string
+    {
+        $segment = Str::slug($this->publicReference());
+
+        if ($segment !== '') {
+            return $segment;
+        }
+
+        return Str::slug(self::PUBLIC_REF_PREFIX.'-'.$this->id);
+    }
+
+    public function assignPublicSlug(): void
+    {
+        if (! $this->id) {
+            return;
+        }
+
+        $slug = $this->uniquePublicSlug(
+            $this->publicUrlSegment(),
+            (string) $this->locale,
+            $this->id,
+        );
+
+        if ($this->slug !== $slug) {
+            $this->forceFill(['slug' => $slug])->saveQuietly();
+        }
+    }
+
+    protected function uniquePublicSlug(string $slug, string $locale, int $excludeId): string
+    {
+        $base = $slug;
+        $i = 0;
+
+        while (true) {
+            $query = static::query()
+                ->where('slug', $slug)
+                ->where('locale', $locale)
+                ->where('id', '!=', $excludeId);
+
+            if (! $query->exists()) {
+                return $slug;
+            }
+
+            $i++;
+            $slug = $base.'-'.$i;
+        }
+    }
+
     /**
-     * Find a published listing by public URL segment (slug or numeric id), preferring the active locale.
+     * Find a published listing by public URL segment (reference slug, legacy slug, or numeric id).
      */
     public static function findPublishedByPublicIdentifier(string $identifier): ?self
     {
+        $identifier = trim(rawurldecode($identifier));
+        $normalized = Str::slug($identifier);
+
         $base = static::query()
-            ->where(function ($query) use ($identifier) {
+            ->where('is_published', true)
+            ->where(function ($query) use ($identifier, $normalized) {
                 $query->where('slug', $identifier);
+
+                if ($normalized !== '') {
+                    $query->orWhere('slug', $normalized);
+                }
 
                 if (ctype_digit($identifier)) {
                     $query->orWhere('id', (int) $identifier);
                 }
-            })
-            ->where('is_published', true);
+
+                if (preg_match('/^cimb-(\d+)$/i', $identifier, $matches) === 1) {
+                    $query->orWhere('id', (int) $matches[1]);
+                }
+
+                $query->orWhere('external_listing_ref', $identifier);
+
+                if ($identifier !== '') {
+                    $query->orWhereRaw('LOWER(external_listing_ref) = ?', [Str::lower($identifier)]);
+                }
+            });
 
         $localized = (clone $base)->where('locale', app()->getLocale())->first();
 

@@ -14,18 +14,25 @@ use App\Http\Controllers\Dashboard\TestimonialDashboardController;
 use App\Http\Controllers\Dashboard\UsersDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ContactSubmissionController;
+use App\Http\Controllers\Dashboard\ContactSubmissionDashboardController;
+use App\Http\Controllers\Dashboard\LeadSubmissionDashboardController;
 use App\Http\Controllers\LeadOfferSubmissionController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\PortfolioPriceAlertController;
 use App\Http\Controllers\PublicContactController;
+use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 Route::post('/lead-offers', LeadOfferSubmissionController::class)
     ->middleware('throttle:15,1')
     ->name('lead-offers.store');
+Route::post('/contact-messages', ContactSubmissionController::class)
+    ->middleware('throttle:15,1')
+    ->name('contact-messages.store');
 Route::get('/proprietati', [PortfolioController::class, 'index'])->name('portfolio');
 Route::redirect('/portfolio', '/proprietati');
 Route::get('/portfolio/{identifier}/pdf', [PortfolioController::class, 'downloadPdf'])
@@ -38,6 +45,7 @@ Route::get('/portfolio/{slug}', [PortfolioController::class, 'show'])->name('por
 Route::get('/terms', [LegalPageController::class, 'terms'])->name('terms');
 Route::get('/privacy', [LegalPageController::class, 'privacy'])->name('privacy');
 Route::get('/contact', PublicContactController::class)->name('contact');
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])
@@ -141,6 +149,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('dashboard.legal.privacy.edit');
     Route::put('dashboard/legal/privacy', [LegalPageDashboardController::class, 'updatePrivacy'])
         ->name('dashboard.legal.privacy.update');
+
+    Route::get('dashboard/lead-submissions', [LeadSubmissionDashboardController::class, 'index'])
+        ->name('dashboard.lead-submissions.index');
+    Route::get('dashboard/lead-submissions/{leadSubmission}', [LeadSubmissionDashboardController::class, 'show'])
+        ->name('dashboard.lead-submissions.show');
+    Route::put('dashboard/lead-submissions/{leadSubmission}/unread', [LeadSubmissionDashboardController::class, 'markUnread'])
+        ->name('dashboard.lead-submissions.unread');
+    Route::delete('dashboard/lead-submissions/{leadSubmission}', [LeadSubmissionDashboardController::class, 'destroy'])
+        ->name('dashboard.lead-submissions.destroy');
+
+    Route::get('dashboard/contact-messages', [ContactSubmissionDashboardController::class, 'index'])
+        ->name('dashboard.contact-submissions.index');
+    Route::get('dashboard/contact-messages/{contactSubmission}', [ContactSubmissionDashboardController::class, 'show'])
+        ->name('dashboard.contact-submissions.show');
+    Route::put('dashboard/contact-messages/{contactSubmission}/unread', [ContactSubmissionDashboardController::class, 'markUnread'])
+        ->name('dashboard.contact-submissions.unread');
+    Route::delete('dashboard/contact-messages/{contactSubmission}', [ContactSubmissionDashboardController::class, 'destroy'])
+        ->name('dashboard.contact-submissions.destroy');
 
     Route::get('dashboard/contact', [ContactSettingsDashboardController::class, 'edit'])
         ->name('dashboard.contact.edit');

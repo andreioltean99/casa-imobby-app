@@ -9,6 +9,8 @@ services:
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
+      APP_LOCALE: ro
+      APP_FALLBACK_LOCALE: ro
       APP_URL: ${APP_URL:-http://localhost}
       DB_CONNECTION: ${DB_CONNECTION:-mysql}
       DB_HOST: ${DB_HOST:-mysql}
@@ -38,6 +40,7 @@ services:
         mysql -h\"$$DB_HOST\" -P\"$$DB_PORT\" -u\"$$DB_USERNAME\" \"$$DB_DATABASE\" -e \"CREATE TABLE IF NOT EXISTS migrations (id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, migration VARCHAR(255) NOT NULL, batch INT NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;\" &&
         mysql -h\"$$DB_HOST\" -P\"$$DB_PORT\" -u\"$$DB_USERNAME\" \"$$DB_DATABASE\" -e \"INSERT INTO migrations (migration, batch) SELECT '0000_00_00_000000_create_app_schema', 1 FROM DUAL WHERE EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'sessions') AND NOT EXISTS (SELECT 1 FROM migrations WHERE migration = '0000_00_00_000000_create_app_schema');\" &&
         echo '==> Migrate...' && php artisan migrate --force &&
+        echo '==> Ensure admin users...' && php artisan admin:ensure-users &&
         echo '==> Wayfinder generate...' && php artisan wayfinder:generate --with-form &&
         echo '==> Storage link...' && ( [ -e public/storage ] || php artisan storage:link ) &&
         echo '==> npm install...' && CI=1 npm install --prefer-offline --no-audit &&

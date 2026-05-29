@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ContactSubmission;
+use App\Models\LeadSubmission;
 use App\Models\PortfolioListingCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Lang;
@@ -40,11 +42,17 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'appUrl' => rtrim((string) config('app.url', $request->getSchemeAndHttpHost()), '/'),
             'locale' => app()->getLocale(),
-            'availableLocales' => (array) config('app.available_locales', ['en', 'ro']),
+            'availableLocales' => (array) config('app.available_locales', ['ro', 'en']),
+            'authUi' => Lang::get('auth'),
             'auth' => [
                 'user' => $request->user(),
             ],
+            'adminUnread' => fn () => $request->user() ? [
+                'leadSubmissions' => LeadSubmission::query()->whereNull('read_at')->count(),
+                'contactMessages' => ContactSubmission::query()->whereNull('read_at')->count(),
+            ] : null,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'portfolioListingAdmin' => [
                 'categoryLabel' => __('website.portfolio.listing_category_label'),
@@ -54,6 +62,10 @@ class HandleInertiaRequests extends Middleware
                 'categoryTitles' => PortfolioListingCategory::titlesForLocale(app()->getLocale()),
             ],
             'admin' => Lang::get('admin'),
+            'flash' => [
+                'contact_submitted' => fn () => $request->session()->get('contact_submitted'),
+                'lead_offer_submitted' => fn () => $request->session()->get('lead_offer_submitted'),
+            ],
         ];
     }
 }

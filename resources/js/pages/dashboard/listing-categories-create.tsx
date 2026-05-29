@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useMemo } from 'react';
+import { AdminLocalizedNameFields } from '@/components/admin-localized-name-fields';
 import AppLayout from '@/layouts/app-layout';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
@@ -10,12 +11,10 @@ const LISTING_CATEGORIES_BASE = '/dashboard/listing-categories';
 export default function ListingCategoriesCreate() {
     const t = useAdminT();
     const { data, setData, post, processing, errors } = useForm<{
-        key: string;
         name_en: string;
         name_ro: string;
         is_active: boolean;
     }>({
-        key: '',
         name_en: '',
         name_ro: '',
         is_active: true,
@@ -42,11 +41,7 @@ export default function ListingCategoriesCreate() {
                 <div className="flex items-center justify-between gap-2">
                     <div>
                         <h1 className="text-lg font-semibold">{t('listing_categories.create.title')}</h1>
-                        <p className="text-sm text-muted-foreground">
-                            {t('listing_categories.create.description', {
-                                example: t('listing_categories.create.example_key'),
-                            })}
-                        </p>
+                        <p className="text-sm text-muted-foreground">{t('listing_categories.create.description')}</p>
                     </div>
                     <Link
                         href={LISTING_CATEGORIES_BASE}
@@ -58,49 +53,14 @@ export default function ListingCategoriesCreate() {
 
                 <div className="relative flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 bg-background p-6 text-sm dark:border-sidebar-border">
                     <form onSubmit={submit} className="max-w-xl space-y-4">
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="key">
-                                {t('listing_categories.create.key_label')}
-                            </label>
-                            <input
-                                id="key"
-                                type="text"
-                                value={data.key}
-                                onChange={(e) => setData('key', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                                className="h-9 w-full max-w-md rounded-md border border-sidebar-border bg-background px-3 font-mono text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                required
-                                maxLength={64}
-                            />
-                            {errors.key && <p className="text-xs text-red-500">{errors.key}</p>}
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="name_en">
-                                {t('listing_categories.create.name_en')}
-                            </label>
-                            <input
-                                id="name_en"
-                                type="text"
-                                value={data.name_en}
-                                onChange={(e) => setData('name_en', e.target.value)}
-                                className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                required
-                            />
-                            {errors.name_en && <p className="text-xs text-red-500">{errors.name_en}</p>}
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="name_ro">
-                                {t('listing_categories.create.name_ro')}
-                            </label>
-                            <input
-                                id="name_ro"
-                                type="text"
-                                value={data.name_ro}
-                                onChange={(e) => setData('name_ro', e.target.value)}
-                                className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                required
-                            />
-                            {errors.name_ro && <p className="text-xs text-red-500">{errors.name_ro}</p>}
-                        </div>
+                        <AdminLocalizedNameFields
+                            idPrefix="listing_category"
+                            nameRo={data.name_ro}
+                            nameEn={data.name_en}
+                            onNameRoChange={(value) => setData('name_ro', value)}
+                            onNameEnChange={(value) => setData('name_en', value)}
+                            errors={errors}
+                        />
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="is_active">
                                 {t('common.active')}

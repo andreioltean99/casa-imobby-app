@@ -64,7 +64,7 @@
 <body>
     <h1>{{ $item->title }}</h1>
     <div class="meta">
-        <span><strong>{{ $labels['ref'] }}</strong> CIM-{{ $item->id }}</span>
+        <span><strong>{{ $labels['ref'] }}</strong> {{ $item->publicReference() }}</span>
         @if($listingUpdated)
             <span><strong>{{ $labels['updated'] }}</strong> {{ $listingUpdated }}</span>
         @endif

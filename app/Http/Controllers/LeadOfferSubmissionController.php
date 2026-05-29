@@ -28,6 +28,6 @@ class LeadOfferSubmissionController extends Controller
             'terms_accepted' => true,
         ]);
 
-        return redirect()->route('home')->with('lead_offer_submitted', true);
+        return back()->with('lead_offer_submitted', true);
     }
 }

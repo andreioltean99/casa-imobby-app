@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class PropertyFilter extends Model
 {
@@ -108,5 +109,14 @@ class PropertyFilter extends Model
     public function scopeSearchable(Builder $query): Builder
     {
         return $query->where('is_searchable', true);
+    }
+
+    public static function generateUniqueKey(): string
+    {
+        do {
+            $key = 'pf_'.strtolower(Str::random(12));
+        } while (static::query()->where('key', $key)->exists());
+
+        return $key;
     }
 }

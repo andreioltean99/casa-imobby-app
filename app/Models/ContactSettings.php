@@ -39,7 +39,8 @@ class ContactSettings extends Model
             ],
         ];
 
-        $defaults = $defaultsByLocale[$locale] ?? $defaultsByLocale['en'];
+        $fallback = config('app.fallback_locale', 'ro');
+        $defaults = $defaultsByLocale[$locale] ?? $defaultsByLocale[$fallback] ?? $defaultsByLocale['ro'];
 
         return self::query()->firstOrCreate(
             ['locale' => $locale],

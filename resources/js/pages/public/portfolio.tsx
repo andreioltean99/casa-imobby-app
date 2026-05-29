@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import { Header } from '@/components/public/Header';
 import {
@@ -7,6 +7,7 @@ import {
 } from '@/components/public/PropertiesFiltersSidebar';
 import { PortfolioSection, type PortfolioItemData } from '@/components/public/PortfolioSection';
 import { Footer } from '@/components/public/Footer';
+import { PublicSeoHead } from '@/components/public/PublicSeoHead';
 import { PROPERTIES_INDEX_PATH } from '@/lib/public-properties-path';
 
 type SearchablePropertyFilter = { id: number; key: string; label: string; values: string[] };
@@ -64,7 +65,11 @@ export default function PortfolioPage({
 
     return (
         <>
-            <Head title={pageTitle} />
+            <PublicSeoHead
+                title={pageTitle}
+                description="Explorează proprietățile Casa Imobby: apartamente, case, spații comerciale și terenuri. Folosește filtre avansate după tip, tranzacție, oraș și caracteristici."
+                canonicalPath={PROPERTIES_INDEX_PATH}
+            />
             <div className="min-h-screen bg-gradient-to-b from-background via-background to-neutral-50 text-foreground dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-900">
                 <Header />
 

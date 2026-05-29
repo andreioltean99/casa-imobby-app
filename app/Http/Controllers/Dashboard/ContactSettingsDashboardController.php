@@ -37,7 +37,8 @@ class ContactSettingsDashboardController extends Controller
             ],
         ];
 
-        $defaults = $defaultsByLocale[$locale] ?? $defaultsByLocale['en'];
+        $fallback = config('app.fallback_locale', 'ro');
+        $defaults = $defaultsByLocale[$locale] ?? $defaultsByLocale[$fallback] ?? $defaultsByLocale['ro'];
 
         $contact = ContactSettings::query()->firstOrCreate(
             ['locale' => $locale],

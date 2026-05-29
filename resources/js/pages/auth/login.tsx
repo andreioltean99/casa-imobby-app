@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, usePage } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,20 @@ import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
+
+type AuthUi = {
+    login?: {
+        title?: string;
+        description?: string;
+        email?: string;
+        email_placeholder?: string;
+        password?: string;
+        password_placeholder?: string;
+        remember?: string;
+        submit?: string;
+        forgot?: string;
+    };
+};
 
 type Props = {
     status?: string;
@@ -21,12 +35,15 @@ export default function Login({
     canResetPassword,
     canRegister,
 }: Props) {
+    const { authUi } = usePage().props as { authUi?: AuthUi };
+    const login = authUi?.login ?? {};
+
     return (
         <AuthLayout
-            title="Log in to your account"
-            description="Enter your email and password below to log in"
+            title={login.title ?? 'Log in to your account'}
+            description={login.description ?? 'Enter your email and password below to log in'}
         >
-            <Head title="Log in" />
+            <Head title={login.submit ?? 'Log in'} />
 
             <Form
                 {...store.form()}
@@ -37,7 +54,7 @@ export default function Login({
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">{login.email ?? 'Email address'}</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -46,21 +63,21 @@ export default function Login({
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="email"
-                                    placeholder="email@example.com"
+                                    placeholder={login.email_placeholder ?? 'email@example.com'}
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password">{login.password ?? 'Password'}</Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
                                             className="ml-auto text-sm"
                                             tabIndex={5}
                                         >
-                                            Forgot password?
+                                            {login.forgot ?? 'Forgot password?'}
                                         </TextLink>
                                     )}
                                 </div>
@@ -71,7 +88,7 @@ export default function Login({
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Password"
+                                    placeholder={login.password_placeholder ?? 'Password'}
                                 />
                                 <InputError message={errors.password} />
                             </div>
@@ -82,7 +99,7 @@ export default function Login({
                                     name="remember"
                                     tabIndex={3}
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label htmlFor="remember">{login.remember ?? 'Remember me'}</Label>
                             </div>
 
                             <Button
@@ -93,7 +110,7 @@ export default function Login({
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Log in
+                                {login.submit ?? 'Log in'}
                             </Button>
                         </div>
 

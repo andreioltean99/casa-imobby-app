@@ -40,7 +40,7 @@ class PortfolioPriceDroppedNotification extends Mailable
                 'newPrice' => $this->newPrice,
                 'locale' => $locale,
                 'listingUrl' => route('portfolio.show', [
-                    'slug' => $this->item->slug !== '' ? $this->item->slug : (string) $this->item->id,
+                    'slug' => $this->item->publicUrlSegment(),
                 ], absolute: true),
             ],
         );

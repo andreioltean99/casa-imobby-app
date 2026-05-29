@@ -1,6 +1,7 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
+import { PublicSeoHead } from '@/components/public/PublicSeoHead';
 import { PROPERTIES_INDEX_PATH } from '@/lib/public-properties-path';
 
 export default function PublicNotFound() {
@@ -15,7 +16,11 @@ export default function PublicNotFound() {
 
     return (
         <>
-            <Head title={`404 - ${tBrand.site_name ?? 'Casa Imobby'}`} />
+            <PublicSeoHead
+                title={`404 - ${tBrand.site_name ?? 'Casa Imobby'}`}
+                description={isEnglish ? 'Page not found.' : 'Pagina nu a fost găsită.'}
+                noindex
+            />
             <div className="min-h-screen bg-gradient-to-b from-background via-background to-neutral-50 text-foreground dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-900">
                 <Header />
 

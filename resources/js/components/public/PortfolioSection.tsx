@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { PROPERTIES_INDEX_PATH } from '@/lib/public-properties-path';
+import { listingPublicHref } from '@/lib/listing-public-url';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
@@ -196,10 +197,7 @@ export function PortfolioSection({
                         </Card>
                     );
 
-                    const projectHref =
-                        project.slug && project.slug.trim().length > 0
-                            ? `/portfolio/${project.slug}`
-                            : `/portfolio/${project.id}`;
+                    const projectHref = listingPublicHref(project);
 
                     return (
                         <Link key={project.id} href={projectHref} className="block h-full cursor-pointer">

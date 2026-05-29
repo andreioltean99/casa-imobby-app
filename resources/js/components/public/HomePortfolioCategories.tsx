@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Card, CardContent } from '@/components/ui/card';
 import type { PortfolioItemData } from '@/components/public/PortfolioSection';
+import { listingPublicHref } from '@/lib/listing-public-url';
 import { propertiesIndexUrl } from '@/lib/public-properties-path';
 
 export type PortfolioCategoryBlock = {
@@ -13,13 +14,6 @@ type Props = {
     /** From database (current locale); falls back to `translations.portfolio.listing_category_titles` if omitted. */
     categoryTitles?: Record<string, string>;
 };
-
-function listingHref(item: { id: number; slug?: string | null }) {
-    if (item.slug && item.slug.trim().length > 0) {
-        return `/portfolio/${item.slug}`;
-    }
-    return `/portfolio/${item.id}`;
-}
 
 export function HomePortfolioCategories({ blocks, categoryTitles: categoryTitlesProp }: Props) {
     const { translations, locale: pageLocale } = usePage().props as {
@@ -119,7 +113,7 @@ export function HomePortfolioCategories({ blocks, categoryTitles: categoryTitles
                     </div>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
                         {block.items.map((project) => {
-                            const href = listingHref(project);
+                            const href = listingPublicHref(project);
                             const priceLabel = formatCardPrice(project.price);
                             const hasMeta = Boolean(project.date || project.duration);
                             return (

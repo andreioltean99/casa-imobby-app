@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class PortfolioListingCategory extends Model
 {
@@ -64,6 +65,15 @@ class PortfolioListingCategory extends Model
         }
 
         return $this->name_en !== '' ? $this->name_en : $this->name_ro;
+    }
+
+    public static function generateUniqueKey(): string
+    {
+        do {
+            $key = 'c_'.strtolower(Str::random(12));
+        } while (static::query()->where('key', $key)->exists());
+
+        return $key;
     }
 
     /**

@@ -126,6 +126,6 @@ return [
     'developed_by' => 'aao-soft.com',
     'developed_by_website' => 'https://aao-soft.com',
 
-    'available_locales' => ['en', 'ro'],
+    'available_locales' => ['ro', 'en'],
 
 ];

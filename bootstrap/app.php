@@ -35,7 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            $availableLocales = (array) config('app.available_locales', ['en', 'ro']);
+            $availableLocales = (array) config('app.available_locales', ['ro', 'en']);
             $selectedLocale = $request->hasSession()
                 ? $request->session()->get('site_locale')
                 : null;

@@ -1,4 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
+import { AVAILABLE_LOCALES, DEFAULT_LOCALE } from '@/lib/default-locale';
 import { PROPERTIES_INDEX_PATH } from '@/lib/public-properties-path';
 import { Moon, Sun } from 'lucide-react';
 import { useAppearance } from '@/hooks/use-appearance';
@@ -24,11 +25,11 @@ export function Header() {
         return currentPath === '/' ? `#${hash}` : `/#${hash}`;
     };
 
-    const current = locale ?? 'en';
+    const current = locale ?? DEFAULT_LOCALE;
     const { resolvedAppearance, updateAppearance } = useAppearance();
     const locales = (availableLocales && availableLocales.length > 0
         ? availableLocales
-        : ['en', 'ro']
+        : [...AVAILABLE_LOCALES]
     ).slice(0, 3);
 
     const siteName = tBrand.site_name ?? 'Casa Imobby';

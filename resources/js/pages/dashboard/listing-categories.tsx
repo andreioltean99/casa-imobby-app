@@ -1,5 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
+import { AdminLocalizedNameCell, adminLocalizedPrimaryName } from '@/components/admin-localized-name-fields';
 import AppLayout from '@/layouts/app-layout';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
@@ -9,7 +10,6 @@ const LISTING_CATEGORIES_BASE = '/dashboard/listing-categories';
 
 type CategoryRow = {
     id: number;
-    key: string;
     name_en: string;
     name_ro: string;
     sort_order: number;
@@ -33,8 +33,8 @@ export default function ListingCategoriesIndex({ categories }: Props) {
         [t],
     );
 
-    const onDelete = (id: number, key: string) => {
-        if (!confirm(t('listing_categories.index.delete_confirm', { key }))) {
+    const onDelete = (id: number, name: string) => {
+        if (!confirm(t('listing_categories.index.delete_confirm', { name }))) {
             return;
         }
         router.delete(`${LISTING_CATEGORIES_BASE}/${id}`);
@@ -76,9 +76,7 @@ export default function ListingCategoriesIndex({ categories }: Props) {
                         <table className="min-w-full border-collapse text-xs">
                             <thead>
                                 <tr className="border-b border-sidebar-border/70 bg-muted/40 text-left text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                                    <th className="px-4 py-2">{t('common.key')}</th>
-                                    <th className="px-4 py-2">{t('common.english')}</th>
-                                    <th className="px-4 py-2">{t('common.romanian')}</th>
+                                    <th className="px-4 py-2">{t('common.name')}</th>
                                     <th className="w-20 px-4 py-2">{t('common.order')}</th>
                                     <th className="w-24 px-4 py-2">{t('common.active')}</th>
                                     <th className="w-36 px-4 py-2 text-right">{t('common.actions')}</th>
@@ -87,7 +85,7 @@ export default function ListingCategoriesIndex({ categories }: Props) {
                             <tbody>
                                 {categories.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
+                                        <td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">
                                             {t('listing_categories.index.empty')}
                                         </td>
                                     </tr>
@@ -97,9 +95,9 @@ export default function ListingCategoriesIndex({ categories }: Props) {
                                             key={c.id}
                                             className="border-b border-sidebar-border/50 hover:bg-muted/30"
                                         >
-                                            <td className="px-4 py-2 font-mono text-[11px]">{c.key}</td>
-                                            <td className="max-w-[12rem] truncate px-4 py-2 text-sm">{c.name_en}</td>
-                                            <td className="max-w-[12rem] truncate px-4 py-2 text-sm">{c.name_ro}</td>
+                                            <td className="max-w-[16rem] px-4 py-2">
+                                                <AdminLocalizedNameCell nameRo={c.name_ro} nameEn={c.name_en} />
+                                            </td>
                                             <td className="px-4 py-2 text-muted-foreground">{c.sort_order}</td>
                                             <td className="px-4 py-2">
                                                 {c.is_active ? (
@@ -122,7 +120,13 @@ export default function ListingCategoriesIndex({ categories }: Props) {
                                                 {' · '}
                                                 <button
                                                     type="button"
-                                                    onClick={() => onDelete(c.id, c.key)}
+                                                    onClick={() =>
+                                                        onDelete(
+                                                            c.id,
+                                                            adminLocalizedPrimaryName(c.name_ro, c.name_en) ||
+                                                                String(c.id),
+                                                        )
+                                                    }
                                                     className="text-destructive hover:underline"
                                                 >
                                                     {t('common.delete')}

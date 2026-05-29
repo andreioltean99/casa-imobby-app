@@ -1,5 +1,9 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useMemo } from 'react';
+import {
+    AdminLocalizedNameFields,
+    adminLocalizedPrimaryName,
+} from '@/components/admin-localized-name-fields';
 import AppLayout from '@/layouts/app-layout';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
@@ -9,7 +13,6 @@ const LISTING_CATEGORIES_BASE = '/dashboard/listing-categories';
 
 type ListingCategory = {
     id: number;
-    key: string;
     name_en: string;
     name_ro: string;
     sort_order: number;
@@ -22,17 +25,18 @@ type Props = {
 
 export default function ListingCategoriesEdit({ listingCategory }: Props) {
     const t = useAdminT();
+    const label = adminLocalizedPrimaryName(listingCategory.name_ro, listingCategory.name_en);
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
             { title: t('breadcrumb.dashboard'), href: dashboard() },
             { title: t('breadcrumb.listing_categories'), href: LISTING_CATEGORIES_BASE },
             {
-                title: listingCategory.key,
+                title: label,
                 href: `${LISTING_CATEGORIES_BASE}/${listingCategory.id}/edit`,
             },
         ],
-        [t, listingCategory.key, listingCategory.id],
+        [t, label, listingCategory.id],
     );
 
     const { data, setData, put, processing, errors } = useForm<{
@@ -52,14 +56,12 @@ export default function ListingCategoriesEdit({ listingCategory }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('meta.edit_listing_category', { key: listingCategory.key })} />
+            <Head title={t('meta.edit_listing_category', { name: label })} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between gap-2">
                     <div>
                         <h1 className="text-lg font-semibold">{t('listing_categories.edit.title')}</h1>
-                        <p className="text-sm text-muted-foreground">
-                            {t('listing_categories.edit.key_locked', { key: listingCategory.key })}
-                        </p>
+                        <p className="text-sm text-muted-foreground">{label}</p>
                     </div>
                     <Link
                         href={LISTING_CATEGORIES_BASE}
@@ -71,34 +73,15 @@ export default function ListingCategoriesEdit({ listingCategory }: Props) {
 
                 <div className="relative flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 bg-background p-6 text-sm dark:border-sidebar-border">
                     <form onSubmit={submit} className="max-w-xl space-y-4">
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="name_en">
-                                {t('listing_categories.create.name_en')}
-                            </label>
-                            <input
-                                id="name_en"
-                                type="text"
-                                value={data.name_en}
-                                onChange={(e) => setData('name_en', e.target.value)}
-                                className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                required
-                            />
-                            {errors.name_en && <p className="text-xs text-red-500">{errors.name_en}</p>}
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="name_ro">
-                                {t('listing_categories.create.name_ro')}
-                            </label>
-                            <input
-                                id="name_ro"
-                                type="text"
-                                value={data.name_ro}
-                                onChange={(e) => setData('name_ro', e.target.value)}
-                                className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                required
-                            />
-                            {errors.name_ro && <p className="text-xs text-red-500">{errors.name_ro}</p>}
-                        </div>
+                        <AdminLocalizedNameFields
+                            idPrefix="listing_category"
+                            nameRo={data.name_ro}
+                            nameEn={data.name_en}
+                            onNameRoChange={(value) => setData('name_ro', value)}
+                            onNameEnChange={(value) => setData('name_en', value)}
+                            errors={errors}
+                            defaultShowEnglish={Boolean(listingCategory.name_en.trim())}
+                        />
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="is_active">
                                 {t('common.active')}

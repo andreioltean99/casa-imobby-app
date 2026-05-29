@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { PublicSeoHead } from '@/components/public/PublicSeoHead';
 import { Header } from '@/components/public/Header';
 import { Footer } from '@/components/public/Footer';
 
@@ -13,7 +13,7 @@ type Props = {
 export default function TermsPage({ page }: Props) {
     return (
         <>
-            <Head title={page.title} />
+            <PublicSeoHead title={page.title} description={page.title} />
             <div className="min-h-screen bg-gradient-to-b from-background via-background to-neutral-50 text-foreground dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-900">
                 <Header />
 
