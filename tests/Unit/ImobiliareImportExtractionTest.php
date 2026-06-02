@@ -52,5 +52,24 @@ class ImobiliareImportExtractionTest extends TestCase
         $parkingCheck->setAccessible(true);
         $this->assertFalse($parkingCheck->invoke($controller, 'Parcare pentru clienti aprox. 70 m'));
         $this->assertTrue($parkingCheck->invoke($controller, 'Subterană'));
+
+        $descriptionMethod = $ref->getMethod('resolveImobiliareDescription');
+        $descriptionMethod->setAccessible(true);
+        $description = $descriptionMethod->invoke($controller, $html);
+
+        $this->assertNotNull($description);
+        $this->assertGreaterThan(400, mb_strlen((string) $description));
+        $this->assertStringContainsString('Agentia Casa IMOBBY', (string) $description);
+        $this->assertStringContainsString('credit ipotecar', (string) $description);
+        $this->assertStringContainsString('dressing', (string) $description);
+        $this->assertStringNotContainsString('Citește mai mult', (string) $description);
+
+        $fromHtmlMethod = $ref->getMethod('extractImobiliareDescriptionFromHtml');
+        $fromHtmlMethod->setAccessible(true);
+        $fromHtml = $fromHtmlMethod->invoke($controller, $html);
+
+        $this->assertNotNull($fromHtml);
+        $this->assertGreaterThan(400, mb_strlen((string) $fromHtml));
+        $this->assertStringContainsString('credit ipotecar', (string) $fromHtml);
     }
 }

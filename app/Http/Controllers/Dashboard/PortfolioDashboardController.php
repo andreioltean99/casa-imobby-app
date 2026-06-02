@@ -559,8 +559,7 @@ class PortfolioDashboardController extends Controller
 
         $metaDescription = $this->extractMetaContent($html, 'name="description"')
             ?? $this->extractMetaContent($html, 'property="og:description"');
-        $fullDescription = $this->extractImobiliareDescriptionFromHtml($html)
-            ?? $this->extractImobiliareDescriptionBlock($html);
+        $fullDescription = $this->resolveImobiliareDescription($html);
 
         $price = $this->extractPriceValue($plain);
         $zone = $this->extractZoneValue($html, $plain);
@@ -599,6 +598,58 @@ class PortfolioDashboardController extends Controller
         return null;
     }
 
+    protected function resolveImobiliareDescription(string $html): ?string
+    {
+        $candidates = array_values(array_filter([
+            $this->extractImobiliareDescriptionFromNoscript($html),
+            $this->extractImobiliareDescriptionFromHtml($html),
+            $this->extractImobiliareDescriptionFromJsonLd($html),
+            $this->extractImobiliareDescriptionBlock($html),
+        ]));
+
+        if ($candidates === []) {
+            return null;
+        }
+
+        usort($candidates, fn (string $a, string $b): int => mb_strlen($b) <=> mb_strlen($a));
+
+        $best = $candidates[0];
+        if (count($candidates) > 1) {
+            $runnerUp = $candidates[1];
+            $bestLength = mb_strlen($best);
+            $runnerUpLength = mb_strlen($runnerUp);
+
+            if ($runnerUpLength > 0 && $bestLength >= (int) ($runnerUpLength * 1.8)) {
+                $compactBest = preg_replace('/\s+/u', ' ', $best) ?? $best;
+                $compactRunnerUp = preg_replace('/\s+/u', ' ', $runnerUp) ?? $runnerUp;
+
+                if (
+                    str_starts_with($compactBest, $compactRunnerUp)
+                    || str_starts_with($compactRunnerUp, $compactBest)
+                ) {
+                    $best = $runnerUp;
+                }
+            }
+        }
+
+        return Str::limit($best, 8000, '');
+    }
+
+    protected function extractImobiliareDescriptionFromNoscript(string $html): ?string
+    {
+        if (! preg_match(
+            '/data-cy="listing-description-section"[\s\S]*?<noscript>([\s\S]*?)<\/noscript>/iu',
+            $html,
+            $matches,
+        )) {
+            return null;
+        }
+
+        $text = $this->normalizeDescriptionText($matches[1]);
+
+        return $text !== null ? $this->dedupeRepeatedDescription($text) : null;
+    }
+
     protected function extractImobiliareDescriptionFromHtml(string $html): ?string
     {
         if (! preg_match(
@@ -609,57 +660,107 @@ class PortfolioDashboardController extends Controller
             return null;
         }
 
-        $raw = trim($matches[1]);
-        if ($raw === '') {
+        $text = $this->normalizeDescriptionText($matches[1]);
+
+        return $text !== null ? $this->dedupeRepeatedDescription($text) : null;
+    }
+
+    protected function extractImobiliareDescriptionFromJsonLd(string $html): ?string
+    {
+        if (preg_match_all(
+            '/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/iu',
+            $html,
+            $scripts,
+        ) === 0) {
             return null;
         }
 
-        $withBreaks = preg_replace('/<(br|\/p|\/li|\/h[1-6]|\/div)\b[^>]*>/iu', "\n", $raw) ?? $raw;
+        $best = null;
+        $bestLength = 0;
+
+        foreach ($scripts[1] as $json) {
+            $data = json_decode(trim($json), true);
+            if (! is_array($data)) {
+                continue;
+            }
+
+            $nodes = $data['@graph'] ?? (isset($data['@type']) ? [$data] : []);
+
+            foreach ($nodes as $node) {
+                if (! is_array($node) || ($node['@type'] ?? '') !== 'Product') {
+                    continue;
+                }
+
+                $description = $node['description'] ?? null;
+                if (! is_string($description) || trim($description) === '') {
+                    continue;
+                }
+
+                $text = $this->normalizeDescriptionText($description);
+                if ($text === null) {
+                    continue;
+                }
+
+                $text = $this->dedupeRepeatedDescription($text);
+                $length = mb_strlen($text);
+                if ($length > $bestLength) {
+                    $best = $text;
+                    $bestLength = $length;
+                }
+            }
+        }
+
+        return $best;
+    }
+
+    protected function extractImobiliareDescriptionBlock(string $html): ?string
+    {
+        $text = $this->normalizeDescriptionText($html);
+
+        if ($text === null) {
+            return null;
+        }
+
+        $pattern = '/Descriere\s+(?:cas[ăa]|apartament)\s*(.*?)\s*(?:Citește\s+mai\s+mult|Detalii\s+(?:cas[ăa]|apartament)|Detalii\s+despre\s+preț|Puncte\s+de\s+interes)/isu';
+        if (preg_match($pattern, $text, $m) !== 1) {
+            return null;
+        }
+
+        $desc = trim($m[1]);
+        $desc = preg_replace('/\n{3,}/u', "\n\n", $desc) ?? $desc;
+
+        if ($desc === '') {
+            return null;
+        }
+
+        return $this->dedupeRepeatedDescription($desc);
+    }
+
+    protected function normalizeDescriptionText(string $rawHtmlOrText): ?string
+    {
+        $withBreaks = preg_replace('/<(br|\/p|\/li|\/h[1-6]|\/div)\b[^>]*>/iu', "\n", $rawHtmlOrText) ?? $rawHtmlOrText;
         $text = html_entity_decode(strip_tags($withBreaks), ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $text = str_replace(["\r\n", "\r"], "\n", $text);
         $text = preg_replace('/[ \t]+\n/u', "\n", $text) ?? $text;
         $text = preg_replace('/\n{3,}/u', "\n\n", $text) ?? $text;
         $text = trim($text);
 
-        if ($text === '') {
-            return null;
-        }
+        return $text !== '' ? $text : null;
+    }
 
-        // Page HTML may contain the same block twice (noscript + visible).
+    protected function dedupeRepeatedDescription(string $text): string
+    {
         $length = mb_strlen($text);
-        if ($length % 2 === 0) {
+        if ($length >= 2 && $length % 2 === 0) {
             $halfLength = (int) ($length / 2);
             $firstHalf = mb_substr($text, 0, $halfLength);
-            if ($firstHalf.mb_substr($text, $halfLength) === $text) {
-                $text = $firstHalf;
+            $secondHalf = mb_substr($text, $halfLength);
+            if ($firstHalf === $secondHalf) {
+                return $firstHalf;
             }
         }
 
-        return Str::limit($text, 8000, '');
-    }
-
-    protected function extractImobiliareDescriptionBlock(string $html): ?string
-    {
-        // Convert common block separators to line breaks before stripping tags.
-        $withBreaks = preg_replace('/<(br|\/p|\/li|\/h[1-6]|\/div)\b[^>]*>/iu', "\n", $html) ?? $html;
-        $text = html_entity_decode(strip_tags($withBreaks), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $text = str_replace(["\r\n", "\r"], "\n", $text);
-        $text = preg_replace('/[ \t]+\n/u', "\n", $text) ?? $text;
-        $text = preg_replace('/\n{3,}/u', "\n\n", $text) ?? $text;
-
-        if (! is_string($text) || trim($text) === '') {
-            return null;
-        }
-
-        $pattern = '/Descriere\s+(?:cas[ăa]|apartament)\s*(.*?)\s*(Citește\s+mai\s+mult|Detalii\s+(?:cas[ăa]|apartament)|Detalii\s+despre\s+preț|Puncte\s+de\s+interes)/isu';
-        if (preg_match($pattern, $text, $m) === 1) {
-            $desc = trim($m[1]);
-            $desc = preg_replace('/\n{3,}/u', "\n\n", $desc) ?? $desc;
-
-            return $desc !== '' ? Str::limit($desc, 8000, '') : null;
-        }
-
-        return null;
+        return $text;
     }
 
     protected function toStructuredText(string $html): string
