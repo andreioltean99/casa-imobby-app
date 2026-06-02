@@ -5,6 +5,7 @@ import {
     ComboboxOption,
     ComboboxOptions,
 } from '@headlessui/react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { ChevronsUpDown } from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Label } from '@/components/ui/label';
@@ -68,6 +69,7 @@ export function SearchableFilterSelect({
     leadingIcon,
     inlineEnd,
 }: Props) {
+    const isMobile = useIsMobile();
     const [query, setQuery] = useState('');
     const [isFocused, setIsFocused] = useState(false);
 
@@ -101,7 +103,7 @@ export function SearchableFilterSelect({
         'dark:bg-background/45',
         isLarge
             ? 'h-14 min-h-[3.5rem] rounded-xl px-4 py-3 text-base shadow-sm pr-12'
-            : 'h-11 rounded-md px-3 py-2 pr-11 text-sm shadow-xs',
+            : 'h-11 min-h-11 rounded-md px-3 py-2 pr-11 text-base shadow-xs sm:text-sm',
         leadingIcon && (isLarge ? 'pl-12' : 'pl-10'),
     );
 
@@ -213,11 +215,11 @@ export function SearchableFilterSelect({
 
                         <ComboboxOptions
                             portal
-                            modal={false}
+                            modal={isMobile}
                             anchor="bottom start"
                             transition
                             className={cn(
-                                'z-[200] mt-1 max-h-64 min-w-[var(--anchor-width)] overflow-y-auto rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-lg',
+                                'z-[9999] mt-1 max-h-64 min-w-[var(--anchor-width)] overflow-y-auto overscroll-contain rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-lg',
                                 'origin-top transition duration-100 ease-out data-closed:scale-95 data-closed:opacity-0',
                             )}
                         >

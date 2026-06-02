@@ -2,7 +2,9 @@ import { Link, usePage } from '@inertiajs/react';
 import { MapPin, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { MobileFilterSelect } from '@/components/public/MobileFilterSelect';
 import { SearchableFilterSelect, type SearchableFilterOption } from '@/components/public/SearchableFilterSelect';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { propertiesIndexUrl } from '@/lib/public-properties-path';
 
@@ -82,6 +84,7 @@ export function PropertySearchStrip() {
     const raw = pageProps.translations
         ?.property_search;
     const t = { ...defaultCopy, ...raw };
+    const isMobile = useIsMobile();
 
     const [deal, setDeal] = useState<Deal>('sale');
     const [propertyType, setPropertyType] = useState<string | null>(null);
@@ -209,28 +212,57 @@ export function PropertySearchStrip() {
                     </fieldset>
                 </div>
 
-                <div className="w-full">
-                    <SearchableFilterSelect
-                        id="property-search-city"
-                        label={t.city_label}
-                        value={city}
-                        onValueChange={setCity}
-                        options={cityOptions}
-                        placeholder={t.filter_city_placeholder}
-                        noResultsLabel={t.filter_no_results}
-                        leadingIcon={<MapPin className="size-4 shrink-0" strokeWidth={2} aria-hidden />}
-                        inlineEnd={
+                <div className="w-full space-y-3">
+                    {isMobile ? (
+                        <>
+                            <MobileFilterSelect
+                                inputId="property-search-city"
+                                label={t.city_label}
+                                value={city === 'any' ? '' : city}
+                                onChange={(next) => setCity(next || 'any')}
+                                options={cityZones.map((zone) => ({
+                                    value: zone,
+                                    label: zone,
+                                }))}
+                                placeholder={t.filter_city_placeholder}
+                                noOptionsMessage={t.filter_no_results}
+                                clearLabel={t.city_any}
+                            />
                             <Button
                                 asChild
-                                className="h-11 shrink-0 gap-1.5 rounded-lg px-5 text-sm font-semibold whitespace-nowrap"
+                                className="h-12 w-full touch-manipulation gap-1.5 rounded-lg text-base font-semibold"
                             >
                                 <Link href={portfolioHref} prefetch>
                                     <Search className="size-4 opacity-90" />
                                     {t.submit_search}
                                 </Link>
                             </Button>
-                        }
-                    />
+                        </>
+                    ) : (
+                        <SearchableFilterSelect
+                            id="property-search-city"
+                            label={t.city_label}
+                            value={city}
+                            onValueChange={setCity}
+                            options={cityOptions}
+                            placeholder={t.filter_city_placeholder}
+                            noResultsLabel={t.filter_no_results}
+                            leadingIcon={
+                                <MapPin className="size-4 shrink-0" strokeWidth={2} aria-hidden />
+                            }
+                            inlineEnd={
+                                <Button
+                                    asChild
+                                    className="h-11 shrink-0 gap-1.5 rounded-lg px-5 text-sm font-semibold whitespace-nowrap"
+                                >
+                                    <Link href={portfolioHref} prefetch>
+                                        <Search className="size-4 opacity-90" />
+                                        {t.submit_search}
+                                    </Link>
+                                </Button>
+                            }
+                        />
+                    )}
                 </div>
             </div>
         </section>

@@ -50,7 +50,7 @@ export function Header() {
     return (
         <header
             className={[
-                'animate-mobile-header-in relative z-50 border-b border-border/60 bg-background/90 backdrop-blur-md transition-shadow duration-200 dark:bg-background/92 md:sticky md:top-0',
+                'animate-mobile-header-in sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur-md transition-shadow duration-200 dark:bg-background/92',
                 scrolled ? 'shadow-sm shadow-black/5 dark:shadow-black/20' : '',
             ].join(' ')}
         >

@@ -174,11 +174,17 @@
     height: auto;
 }
 
-/* Public pages (e.g. terms): respect saved image alignment from tiny editor */
-.prose [style*="text-align"] img {
+.tiny-editor-content [style*='text-align'] img {
     display: inline-block;
     max-width: 100%;
     height: auto;
+}
+
+.tiny-editor-content blockquote {
+    margin: 0.75rem 0;
+    border-left: 3px solid var(--border);
+    padding-left: 1rem;
+    color: var(--muted-foreground);
 }
 
 @keyframes testimonial-fade-in {
@@ -260,6 +266,16 @@
 }
 
 /* Public header is sticky from md up; hash links (#about, #units, #contact) need offset so titles stay visible. */
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+@media (max-width: 767px) {
+    html {
+        scroll-padding-top: 5.5rem;
+    }
+}
+
 @media (min-width: 768px) {
     html {
         scroll-padding-top: 6.75rem;

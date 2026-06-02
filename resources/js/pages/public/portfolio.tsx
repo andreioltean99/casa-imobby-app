@@ -62,6 +62,11 @@ export default function PortfolioPage({
     };
 
     const count = portfolioItems?.length ?? 0;
+    const countLabel =
+        (pfLabels.filters_listings_count as string | undefined)?.replace(
+            ':count',
+            String(count),
+        ) ?? `${count} listings`;
 
     return (
         <>
@@ -73,8 +78,8 @@ export default function PortfolioPage({
             <div className="min-h-screen bg-gradient-to-b from-background via-background to-neutral-50 text-foreground dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-900">
                 <Header />
 
-                <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:py-12">
-                    <div className="mb-6 flex items-center">
+                <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-10 lg:py-12">
+                    <div className="mb-4 flex items-center sm:mb-6">
                         <button
                             type="button"
                             onClick={() => window.history.back()}
@@ -86,13 +91,13 @@ export default function PortfolioPage({
                         </button>
                     </div>
 
-                    <div className="mb-6 space-y-3">
+                    <div className="mb-5 space-y-2 sm:mb-6 sm:space-y-3">
                         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-accent dark:text-emerald-400">
                             {(tPortfolio.page_kicker as string | undefined) ??
                                 (tPortfolio.section_title as string | undefined) ??
                                 'Properties'}
                         </p>
-                        <h1 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+                        <h1 className="text-balance text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl">
                             {(tPortfolio.section_title as string | undefined) ?? 'Properties'}
                         </h1>
                         <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
@@ -112,7 +117,7 @@ export default function PortfolioPage({
                     <form
                         method="get"
                         action={PROPERTIES_INDEX_PATH}
-                        className="mb-8 rounded-xl border border-border/70 bg-background/90 p-4 shadow-sm"
+                        className="mb-5 rounded-xl border border-border/70 bg-background/90 p-4 shadow-sm sm:mb-8"
                     >
                         {filters.deal ? <input type="hidden" name="deal" value={filters.deal} /> : null}
                         {filters.type ? <input type="hidden" name="type" value={filters.type} /> : null}
@@ -132,7 +137,7 @@ export default function PortfolioPage({
                                     (tPortfolio.filters_keyword_placeholder as string | undefined) ??
                                     'Search by property name or any characteristic...'
                                 }
-                                className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-brand"
+                                className="h-11 w-full rounded-md border border-border bg-background px-3 text-base outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-brand sm:text-sm"
                             />
                             <button
                                 type="submit"
@@ -143,7 +148,7 @@ export default function PortfolioPage({
                         </div>
                     </form>
 
-                    <div className="grid gap-10 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] lg:gap-12">
+                    <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] lg:gap-12">
                         <PropertiesFiltersSidebar
                             filterState={filters}
                             listingsCount={count}
@@ -153,6 +158,11 @@ export default function PortfolioPage({
                             cityZoneOptions={cityZoneOptions}
                         />
                         <div className="min-w-0">
+                            <div className="mb-3 lg:hidden">
+                                <p className="text-sm font-medium text-muted-foreground">
+                                    {countLabel}
+                                </p>
+                            </div>
                             <PortfolioSection
                                 portfolioItems={portfolioItems}
                                 showViewAll={false}
