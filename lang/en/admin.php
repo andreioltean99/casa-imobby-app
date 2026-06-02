@@ -329,6 +329,11 @@ return [
         'index' => [
             'title' => 'Testimonials',
             'description' => 'Quotes from clients shown on the Casa Imobby homepage.',
+            'section_visibility_title' => '“What our clients say” section',
+            'section_visibility_help' => 'Control whether the testimonials block appears on the homepage. Hidden by default.',
+            'section_visibility_label' => 'Show section on homepage',
+            'section_visibility_save' => 'Save section setting',
+            'section_visibility_saved_status' => 'Testimonials section setting saved.',
             'add' => 'Add testimonial',
             'count_one' => ':count testimonial',
             'count_many' => ':count testimonials',

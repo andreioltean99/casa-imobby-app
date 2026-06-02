@@ -6,8 +6,16 @@ import {
     HomePortfolioCategories,
     type PortfolioCategoryBlock,
 } from '@/components/public/HomePortfolioCategories';
-import { TestimonialsSection, type TestimonialItem } from '@/components/public/TestimonialsSection';
-import { AboutSection, type AboutData, type AboutItemData, type PrincipleItem } from '@/components/public/AboutSection';
+import {
+    TestimonialsSection,
+    type TestimonialItem,
+} from '@/components/public/TestimonialsSection';
+import {
+    AboutSection,
+    type AboutData,
+    type AboutItemData,
+    type PrincipleItem,
+} from '@/components/public/AboutSection';
 import { ContactSection } from '@/components/public/ContactSection';
 import { PropertySearchStrip } from '@/components/public/PropertySearchStrip';
 import { LeadOfferModal } from '@/components/public/LeadOfferModal';
@@ -16,6 +24,7 @@ import { PublicSeoHead } from '@/components/public/PublicSeoHead';
 import { PROPERTIES_INDEX_PATH } from '@/lib/public-properties-path';
 
 type Props = {
+    showTestimonialsSection?: boolean;
     testimonials?: TestimonialItem[];
     portfolioCategoryBlocks?: PortfolioCategoryBlock[];
     listingCategoryTitles?: Record<string, string>;
@@ -25,6 +34,7 @@ type Props = {
 };
 
 export default function PublicHome({
+    showTestimonialsSection = false,
     testimonials,
     portfolioCategoryBlocks,
     listingCategoryTitles,
@@ -32,10 +42,16 @@ export default function PublicHome({
     aboutItems,
     principles,
 }: Props) {
-    const { props } = usePage<{ translations?: Record<string, unknown>; appUrl?: string }>();
-    const tPortfolio = (props.translations?.portfolio as Record<string, string> | undefined) ?? {};
+    const { props } = usePage<{
+        translations?: Record<string, unknown>;
+        appUrl?: string;
+    }>();
+    const tPortfolio =
+        (props.translations?.portfolio as Record<string, string> | undefined) ??
+        {};
     const viewAllLabel = tPortfolio.view_all ?? 'View full unit list';
-    const appUrl = (props.appUrl ?? '').replace(/\/+$/, '') || 'https://casa-imobby.ro';
+    const appUrl =
+        (props.appUrl ?? '').replace(/\/+$/, '') || 'https://casa-imobby.ro';
 
     return (
         <>
@@ -84,9 +100,15 @@ export default function PublicHome({
                         </Link>
                     </div>
 
-                    <TestimonialsSection testimonials={testimonials} />
+                    {showTestimonialsSection ? (
+                        <TestimonialsSection testimonials={testimonials} />
+                    ) : null}
 
-                    <AboutSection about={about} aboutItems={aboutItems} principles={principles} />
+                    <AboutSection
+                        about={about}
+                        aboutItems={aboutItems}
+                        principles={principles}
+                    />
 
                     <ContactSection />
                 </main>
@@ -96,4 +118,3 @@ export default function PublicHome({
         </>
     );
 }
-

@@ -87,7 +87,10 @@ export default function DashboardPortfolioEdit({
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
             { title: t('breadcrumb.dashboard'), href: dashboard() },
-            { title: t('breadcrumb.property_listings'), href: '/dashboard/portfolio' },
+            {
+                title: t('breadcrumb.property_listings'),
+                href: '/dashboard/portfolio',
+            },
             {
                 title: portfolioItem.title,
                 href: `/dashboard/portfolio/${portfolioItem.id}/edit`,
@@ -96,17 +99,26 @@ export default function DashboardPortfolioEdit({
         [t, portfolioItem.title, portfolioItem.id],
     );
 
-    const [propertyFilterRows, setPropertyFilterRows] = useState<PropertyFilterRow[]>(
-        () =>
-            portfolioItem.property_filter_values?.length
-                ? portfolioItem.property_filter_values.map((row) => ({
-                      property_filter_id: String(row.property_filter_id),
-                      value: row.value ?? '',
-                  }))
-                : [{ property_filter_id: '', value: '' }],
+    const [propertyFilterRows, setPropertyFilterRows] = useState<
+        PropertyFilterRow[]
+    >(() =>
+        portfolioItem.property_filter_values?.length
+            ? portfolioItem.property_filter_values.map((row) => ({
+                  property_filter_id: String(row.property_filter_id),
+                  value: row.value ?? '',
+              }))
+            : [{ property_filter_id: '', value: '' }],
     );
 
-    const { data, setData, put, processing, errors, delete: destroy } = useForm<{
+    const {
+        data,
+        setData,
+        transform,
+        put,
+        processing,
+        errors,
+        delete: destroy,
+    } = useForm<{
         title: string;
         short_description: string;
         description: string;
@@ -125,7 +137,9 @@ export default function DashboardPortfolioEdit({
         short_description: portfolioItem.short_description ?? '',
         description: portfolioItem.description ?? '',
         price:
-            portfolioItem.price !== null && portfolioItem.price !== undefined && portfolioItem.price !== ''
+            portfolioItem.price !== null &&
+            portfolioItem.price !== undefined &&
+            portfolioItem.price !== ''
                 ? String(portfolioItem.price)
                 : '',
         is_published: portfolioItem.is_published ?? true,
@@ -156,16 +170,21 @@ export default function DashboardPortfolioEdit({
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
+        transform((form) => ({
+            ...form,
+            property_filters_json: JSON.stringify(
+                propertyFilterRows
+                    .map((row) => ({
+                        property_filter_id: Number(row.property_filter_id),
+                        value: row.value.trim(),
+                    }))
+                    .filter(
+                        (row) => row.property_filter_id > 0 && row.value !== '',
+                    ),
+            ),
+        }));
         put(`/dashboard/portfolio/${portfolioItem.id}`, {
             forceFormData: true,
-            transform: (form) => ({
-                ...form,
-                property_filters_json: JSON.stringify(
-                    propertyFilterRows
-                        .map((row) => ({ property_filter_id: Number(row.property_filter_id), value: row.value.trim() }))
-                        .filter((row) => row.property_filter_id > 0 && row.value !== ''),
-                ),
-            }),
         });
     };
 
@@ -182,7 +201,8 @@ export default function DashboardPortfolioEdit({
         e.preventDefault();
         const form = galleryFormRef.current;
         if (!form) return;
-        const fileInput = form.querySelector<HTMLInputElement>('input[type="file"]');
+        const fileInput =
+            form.querySelector<HTMLInputElement>('input[type="file"]');
         const files = fileInput?.files;
         if (!files?.length) return;
         setGalleryUploading(true);
@@ -190,30 +210,42 @@ export default function DashboardPortfolioEdit({
         Array.from(files).forEach((file) => {
             formData.append('images[]', file);
         });
-        router.post(`/dashboard/portfolio/${portfolioItem.id}/gallery`, formData, {
-            forceFormData: true,
-            onFinish: () => {
-                setGalleryUploading(false);
-                if (fileInput) {
-                    fileInput.value = '';
-                }
+        router.post(
+            `/dashboard/portfolio/${portfolioItem.id}/gallery`,
+            formData,
+            {
+                forceFormData: true,
+                onFinish: () => {
+                    setGalleryUploading(false);
+                    if (fileInput) {
+                        fileInput.value = '';
+                    }
+                },
             },
-        });
+        );
     };
 
     const deleteGalleryImage = (imageId: number) => {
         if (!confirm(t('portfolio.edit.remove_gallery_confirm'))) return;
-        router.delete(`/dashboard/portfolio/${portfolioItem.id}/gallery/${imageId}`);
+        router.delete(
+            `/dashboard/portfolio/${portfolioItem.id}/gallery/${imageId}`,
+        );
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('meta.edit_listing', { title: portfolioItem.title })} />
+            <Head
+                title={t('meta.edit_listing', { title: portfolioItem.title })}
+            />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between gap-2">
                     <div>
-                        <h1 className="text-lg font-semibold">{t('portfolio.edit.title')}</h1>
-                        <p className="text-sm text-muted-foreground">{t('portfolio.edit.description')}</p>
+                        <h1 className="text-lg font-semibold">
+                            {t('portfolio.edit.title')}
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            {t('portfolio.edit.description')}
+                        </p>
                     </div>
                     <div className="flex items-center gap-2">
                         <button
@@ -235,19 +267,26 @@ export default function DashboardPortfolioEdit({
                 <div className="relative flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 bg-background p-6 text-sm dark:border-sidebar-border">
                     <form onSubmit={submit} className="space-y-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="title">
+                            <label
+                                className="text-xs font-medium"
+                                htmlFor="title"
+                            >
                                 {t('portfolio.form.title')}
                             </label>
                             <input
                                 id="title"
                                 type="text"
                                 value={data.title}
-                                onChange={(e) => setData('title', e.target.value)}
-                                className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                onChange={(e) =>
+                                    setData('title', e.target.value)
+                                }
+                                className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                 required
                             />
                             {errors.title && (
-                                <p className="text-xs text-red-500">{errors.title}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.title}
+                                </p>
                             )}
                         </div>
                         <ListingTypeSelector
@@ -259,32 +298,46 @@ export default function DashboardPortfolioEdit({
                             onSelectFocus={refreshOnDropdownFocus}
                         />
                         <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="short_description">
+                            <label
+                                className="text-xs font-medium"
+                                htmlFor="short_description"
+                            >
                                 {t('portfolio.form.short_description')}
                             </label>
                             <textarea
                                 id="short_description"
                                 value={data.short_description}
-                                onChange={(e) => setData('short_description', e.target.value)}
+                                onChange={(e) =>
+                                    setData('short_description', e.target.value)
+                                }
                                 rows={2}
-                                className="w-full rounded-md border border-sidebar-border bg-background px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                className="w-full rounded-md border border-sidebar-border bg-background px-3 py-2 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             />
                             {errors.short_description && (
-                                <p className="text-xs text-red-500">{errors.short_description}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.short_description}
+                                </p>
                             )}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="description">
+                            <label
+                                className="text-xs font-medium"
+                                htmlFor="description"
+                            >
                                 {t('portfolio.form.description')}
                             </label>
                             <TinyTextEditor
                                 id="description"
                                 value={data.description}
-                                onChange={(value) => setData('description', value)}
+                                onChange={(value) =>
+                                    setData('description', value)
+                                }
                                 className="rounded-md border border-sidebar-border/70 bg-background p-2"
                             />
                             {errors.description && (
-                                <p className="text-xs text-red-500">{errors.description}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.description}
+                                </p>
                             )}
                         </div>
                         <PropertyCharacteristicsFields
@@ -297,7 +350,10 @@ export default function DashboardPortfolioEdit({
                         />
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             <div className="space-y-1">
-                                <label className="text-xs font-medium" htmlFor="external_storia_url">
+                                <label
+                                    className="text-xs font-medium"
+                                    htmlFor="external_storia_url"
+                                >
                                     {t('portfolio.form.storia_url')}
                                 </label>
                                 <input
@@ -305,16 +361,26 @@ export default function DashboardPortfolioEdit({
                                     type="url"
                                     inputMode="url"
                                     value={data.external_storia_url}
-                                    onChange={(e) => setData('external_storia_url', e.target.value)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'external_storia_url',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="https://www.storia.ro/…"
-                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                 />
                                 {errors.external_storia_url && (
-                                    <p className="text-xs text-red-500">{errors.external_storia_url}</p>
+                                    <p className="text-xs text-red-500">
+                                        {errors.external_storia_url}
+                                    </p>
                                 )}
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-medium" htmlFor="external_imobiliare_url">
+                                <label
+                                    className="text-xs font-medium"
+                                    htmlFor="external_imobiliare_url"
+                                >
                                     {t('portfolio.form.imobiliare_url')}
                                 </label>
                                 <input
@@ -322,16 +388,26 @@ export default function DashboardPortfolioEdit({
                                     type="url"
                                     inputMode="url"
                                     value={data.external_imobiliare_url}
-                                    onChange={(e) => setData('external_imobiliare_url', e.target.value)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'external_imobiliare_url',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="https://www.imobiliare.ro/…"
-                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                 />
                                 {errors.external_imobiliare_url && (
-                                    <p className="text-xs text-red-500">{errors.external_imobiliare_url}</p>
+                                    <p className="text-xs text-red-500">
+                                        {errors.external_imobiliare_url}
+                                    </p>
                                 )}
                             </div>
                             <div className="space-y-1 sm:col-span-2 lg:col-span-1">
-                                <label className="text-xs font-medium" htmlFor="external_olx_url">
+                                <label
+                                    className="text-xs font-medium"
+                                    htmlFor="external_olx_url"
+                                >
                                     {t('portfolio.form.olx_url')}
                                 </label>
                                 <input
@@ -339,43 +415,69 @@ export default function DashboardPortfolioEdit({
                                     type="url"
                                     inputMode="url"
                                     value={data.external_olx_url}
-                                    onChange={(e) => setData('external_olx_url', e.target.value)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'external_olx_url',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="https://www.olx.ro/d/oferta/…"
-                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                 />
                                 {errors.external_olx_url && (
-                                    <p className="text-xs text-red-500">{errors.external_olx_url}</p>
+                                    <p className="text-xs text-red-500">
+                                        {errors.external_olx_url}
+                                    </p>
                                 )}
                             </div>
                         </div>
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="space-y-1">
-                                <label className="text-xs font-medium" htmlFor="zone">
+                                <label
+                                    className="text-xs font-medium"
+                                    htmlFor="zone"
+                                >
                                     Oras / zona
                                 </label>
                                 <input
                                     id="zone"
                                     type="text"
                                     value={data.zone}
-                                    onChange={(e) => setData('zone', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('zone', e.target.value)
+                                    }
                                     placeholder="ex. Cluj-Napoca, Buna Ziua"
-                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                 />
-                                {errors.zone && <p className="text-xs text-red-500">{errors.zone}</p>}
+                                {errors.zone && (
+                                    <p className="text-xs text-red-500">
+                                        {errors.zone}
+                                    </p>
+                                )}
                             </div>
                             <div className="space-y-2">
                                 <label className="flex cursor-pointer items-center gap-2 text-xs font-medium">
                                     <input
                                         type="checkbox"
                                         checked={data.pinned_home}
-                                        onChange={(e) => setData('pinned_home', e.target.checked)}
+                                        onChange={(e) =>
+                                            setData(
+                                                'pinned_home',
+                                                e.target.checked,
+                                            )
+                                        }
                                         className="h-4 w-4 rounded border-sidebar-border"
                                     />
-                                    {listingAdmin?.pinnedHomeLabel ?? 'Pin to homepage'}
+                                    {listingAdmin?.pinnedHomeLabel ??
+                                        'Pin to homepage'}
                                 </label>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-medium" htmlFor="pinned_home_order">
-                                        {listingAdmin?.pinnedHomeOrderLabel ?? 'Pin order'}
+                                    <label
+                                        className="text-xs font-medium"
+                                        htmlFor="pinned_home_order"
+                                    >
+                                        {listingAdmin?.pinnedHomeOrderLabel ??
+                                            'Pin order'}
                                     </label>
                                     <input
                                         id="pinned_home_order"
@@ -383,18 +485,28 @@ export default function DashboardPortfolioEdit({
                                         min={0}
                                         max={9999}
                                         value={data.pinned_home_order}
-                                        onChange={(e) => setData('pinned_home_order', e.target.value)}
+                                        onChange={(e) =>
+                                            setData(
+                                                'pinned_home_order',
+                                                e.target.value,
+                                            )
+                                        }
                                         disabled={!data.pinned_home}
-                                        className="h-9 w-full max-w-[140px] rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
+                                        className="h-9 w-full max-w-[140px] rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
                                     />
                                     {errors.pinned_home_order && (
-                                        <p className="text-xs text-red-500">{errors.pinned_home_order}</p>
+                                        <p className="text-xs text-red-500">
+                                            {errors.pinned_home_order}
+                                        </p>
                                     )}
                                 </div>
                             </div>
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="price">
+                            <label
+                                className="text-xs font-medium"
+                                htmlFor="price"
+                            >
                                 {t('portfolio.form.price')}
                             </label>
                             <input
@@ -405,30 +517,45 @@ export default function DashboardPortfolioEdit({
                                 step="0.01"
                                 required
                                 value={data.price}
-                                onChange={(e) => setData('price', e.target.value)}
+                                onChange={(e) =>
+                                    setData('price', e.target.value)
+                                }
                                 placeholder={t('portfolio.form.price_ph')}
-                                className="h-9 w-full max-w-xs rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                className="h-9 w-full max-w-xs rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             />
-                            {errors.price && <p className="text-xs text-red-500">{errors.price}</p>}
+                            {errors.price && (
+                                <p className="text-xs text-red-500">
+                                    {errors.price}
+                                </p>
+                            )}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="is_published">
+                            <label
+                                className="text-xs font-medium"
+                                htmlFor="is_published"
+                            >
                                 {t('common.published_field')}
                             </label>
                             <select
                                 id="is_published"
                                 value={data.is_published ? '1' : '0'}
                                 onChange={(e) =>
-                                    setData('is_published', e.target.value === '1')
+                                    setData(
+                                        'is_published',
+                                        e.target.value === '1',
+                                    )
                                 }
-                                className="h-9 w-full max-w-xs rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                className="h-9 w-full max-w-xs rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             >
                                 <option value="1">{t('common.yes')}</option>
                                 <option value="0">{t('common.no')}</option>
                             </select>
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="image">
+                            <label
+                                className="text-xs font-medium"
+                                htmlFor="image"
+                            >
                                 {t('portfolio.form.image')}
                             </label>
                             <input
@@ -436,7 +563,10 @@ export default function DashboardPortfolioEdit({
                                 type="file"
                                 accept="image/*"
                                 onChange={(e) =>
-                                    setData('image', e.target.files?.[0] ?? null)
+                                    setData(
+                                        'image',
+                                        e.target.files?.[0] ?? null,
+                                    )
                                 }
                                 className="block w-full text-xs text-muted-foreground file:mr-2 file:rounded-md file:border file:border-sidebar-border file:bg-muted file:px-2 file:py-1 file:text-xs file:font-medium file:text-foreground hover:file:bg-muted/80"
                             />
@@ -448,7 +578,9 @@ export default function DashboardPortfolioEdit({
                                     <div className="h-24 w-24 overflow-hidden rounded-md border border-sidebar-border/70 bg-muted">
                                         <img
                                             src={imagePreview}
-                                            alt={t('portfolio.edit.new_image_preview_alt')}
+                                            alt={t(
+                                                'portfolio.edit.new_image_preview_alt',
+                                            )}
                                             className="h-full w-full object-cover"
                                         />
                                     </div>
@@ -469,7 +601,9 @@ export default function DashboardPortfolioEdit({
                                 </div>
                             )}
                             {errors.image && (
-                                <p className="text-xs text-red-500">{errors.image}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.image}
+                                </p>
                             )}
                         </div>
                         <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
@@ -501,11 +635,17 @@ export default function DashboardPortfolioEdit({
                 </div>
 
                 <div className="rounded-xl border border-sidebar-border/70 bg-background p-6 dark:border-sidebar-border">
-                    <h2 className="mb-4 text-sm font-semibold">{t('portfolio.edit.gallery_section_title')}</h2>
+                    <h2 className="mb-4 text-sm font-semibold">
+                        {t('portfolio.edit.gallery_section_title')}
+                    </h2>
                     <p className="mb-4 text-xs text-muted-foreground">
                         {t('portfolio.edit.gallery_section_help')}
                     </p>
-                    <form ref={galleryFormRef} onSubmit={onGallerySubmit} className="mb-4 flex flex-wrap items-end gap-2">
+                    <form
+                        ref={galleryFormRef}
+                        onSubmit={onGallerySubmit}
+                        className="mb-4 flex flex-wrap items-end gap-2"
+                    >
                         <input
                             type="file"
                             accept="image/*"
@@ -518,7 +658,9 @@ export default function DashboardPortfolioEdit({
                             disabled={galleryUploading}
                             className="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-60"
                         >
-                            {galleryUploading ? t('portfolio.edit.gallery_uploading') : t('portfolio.edit.gallery_add_photos')}
+                            {galleryUploading
+                                ? t('portfolio.edit.gallery_uploading')
+                                : t('portfolio.edit.gallery_add_photos')}
                         </button>
                     </form>
                     {props.errors?.images ? (
@@ -542,8 +684,10 @@ export default function DashboardPortfolioEdit({
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => deleteGalleryImage(img.id)}
-                                        className="absolute right-1 top-1 rounded bg-destructive/90 px-1.5 py-0.5 text-[10px] font-medium text-white opacity-0 transition group-hover:opacity-100"
+                                        onClick={() =>
+                                            deleteGalleryImage(img.id)
+                                        }
+                                        className="absolute top-1 right-1 rounded bg-destructive/90 px-1.5 py-0.5 text-[10px] font-medium text-white opacity-0 transition group-hover:opacity-100"
                                     >
                                         {t('common.remove')}
                                     </button>

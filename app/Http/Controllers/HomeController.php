@@ -10,6 +10,7 @@ use App\Models\PortfolioItem;
 use App\Models\PortfolioListingCategory;
 use App\Models\Principle;
 use App\Models\Testimonial;
+use App\Models\TestimonialSectionSettings;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -21,20 +22,24 @@ class HomeController extends Controller
      */
     public function __invoke()
     {
-        $testimonials = Testimonial::query()
-            ->where('is_published', true)
-            ->orderByRaw('COALESCE(sort_order, 999999)')
-            ->orderBy('created_at', 'desc')
-            ->limit(3)
-            ->get([
-                'id',
-                'name',
-                'role',
-                'quote',
-                'image_path',
-            ]);
-
         $locale = app()->getLocale();
+        $testimonialSection = TestimonialSectionSettings::resolveForLocale($locale);
+        $showTestimonialsSection = $testimonialSection->show_on_homepage;
+
+        $testimonials = $showTestimonialsSection
+            ? Testimonial::query()
+                ->where('is_published', true)
+                ->orderByRaw('COALESCE(sort_order, 999999)')
+                ->orderBy('created_at', 'desc')
+                ->limit(3)
+                ->get([
+                    'id',
+                    'name',
+                    'role',
+                    'quote',
+                    'image_path',
+                ])
+            : collect();
         $portfolioCategoryBlocks = $this->portfolioCategoryBlocksForLocale($locale);
 
         if ($portfolioCategoryBlocks === []) {
@@ -78,6 +83,7 @@ class HomeController extends Controller
         );
 
         return Inertia::render('public/home', [
+            'showTestimonialsSection' => $showTestimonialsSection,
             'testimonials' => $testimonials,
             'portfolioCategoryBlocks' => $portfolioCategoryBlocks,
             'listingCategoryTitles' => PortfolioListingCategory::titlesForLocale($locale),

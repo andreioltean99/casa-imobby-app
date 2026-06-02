@@ -51,6 +51,7 @@ type PortfolioItem = {
     price?: string | number | null;
     gallery: GalleryImage[];
     property_filter_values?: Array<{
+        property_filter_id?: number;
         value: string;
         property_filter?: {
             key: string;
@@ -336,14 +337,22 @@ export default function PortfolioProjectPage({
         return (portfolioItem.property_filter_values ?? [])
             .map((row) => {
                 const filter = row.property_filter;
-                if (!filter || !row.value?.trim()) {
+                const value = row.value?.trim();
+                if (!value) {
                     return null;
                 }
-                const label =
-                    appLocale === 'ro'
+
+                const fallbackLabel =
+                    appLocale === 'ro' ? 'Caracteristică' : 'Characteristic';
+                const label = filter
+                    ? appLocale === 'ro'
                         ? filter.name_ro || filter.name_en
-                        : filter.name_en || filter.name_ro;
-                return { key: filter.key, label, value: row.value.trim() };
+                        : filter.name_en || filter.name_ro
+                    : `${fallbackLabel}${row.property_filter_id ? ` #${row.property_filter_id}` : ''}`;
+                const key =
+                    filter?.key ?? `pf_${row.property_filter_id ?? label}`;
+
+                return { key, label, value };
             })
             .filter(
                 (row): row is { key: string; label: string; value: string } =>

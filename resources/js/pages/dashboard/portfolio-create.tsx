@@ -24,11 +24,11 @@ export default function DashboardPortfolioCreate({
     propertyFilterOptions: propertyFilterOptionsProp = [],
 }: Props) {
     const t = useAdminT();
-    const [propertyFilterRows, setPropertyFilterRows] = useState<PropertyFilterRow[]>([
-        { property_filter_id: '', value: '' },
-    ]);
+    const [propertyFilterRows, setPropertyFilterRows] = useState<
+        PropertyFilterRow[]
+    >([{ property_filter_id: '', value: '' }]);
 
-    const { data, setData, post, processing, errors } = useForm<{
+    const { data, setData, transform, post, processing, errors } = useForm<{
         title: string;
         short_description: string;
         description: string;
@@ -80,7 +80,9 @@ export default function DashboardPortfolioCreate({
             return;
         }
 
-        const urls = data.gallery_images.map((file) => URL.createObjectURL(file));
+        const urls = data.gallery_images.map((file) =>
+            URL.createObjectURL(file),
+        );
         setGalleryPreviews(urls);
 
         return () => {
@@ -90,16 +92,21 @@ export default function DashboardPortfolioCreate({
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
+        transform((form) => ({
+            ...form,
+            property_filters_json: JSON.stringify(
+                propertyFilterRows
+                    .map((row) => ({
+                        property_filter_id: Number(row.property_filter_id),
+                        value: row.value.trim(),
+                    }))
+                    .filter(
+                        (row) => row.property_filter_id > 0 && row.value !== '',
+                    ),
+            ),
+        }));
         post('/dashboard/portfolio', {
             forceFormData: true,
-            transform: (form) => ({
-                ...form,
-                property_filters_json: JSON.stringify(
-                    propertyFilterRows
-                        .map((row) => ({ property_filter_id: Number(row.property_filter_id), value: row.value.trim() }))
-                        .filter((row) => row.property_filter_id > 0 && row.value !== ''),
-                ),
-            }),
         });
     };
 
@@ -132,8 +139,14 @@ export default function DashboardPortfolioCreate({
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
             { title: t('breadcrumb.dashboard'), href: dashboard() },
-            { title: t('breadcrumb.property_listings'), href: '/dashboard/portfolio' },
-            { title: t('breadcrumb.add_listing'), href: '/dashboard/portfolio/create' },
+            {
+                title: t('breadcrumb.property_listings'),
+                href: '/dashboard/portfolio',
+            },
+            {
+                title: t('breadcrumb.add_listing'),
+                href: '/dashboard/portfolio/create',
+            },
         ],
         [t],
     );
@@ -144,8 +157,12 @@ export default function DashboardPortfolioCreate({
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <div className="flex items-center justify-between gap-2">
                     <div>
-                        <h1 className="text-lg font-semibold">{t('portfolio.create.title')}</h1>
-                        <p className="text-sm text-muted-foreground">{t('portfolio.create.description')}</p>
+                        <h1 className="text-lg font-semibold">
+                            {t('portfolio.create.title')}
+                        </h1>
+                        <p className="text-sm text-muted-foreground">
+                            {t('portfolio.create.description')}
+                        </p>
                     </div>
                     <div className="flex items-center gap-2">
                         <Link
@@ -160,19 +177,26 @@ export default function DashboardPortfolioCreate({
                 <div className="relative flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 bg-background p-6 text-sm dark:border-sidebar-border">
                     <form onSubmit={submit} className="space-y-4">
                         <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="title">
+                            <label
+                                className="text-xs font-medium"
+                                htmlFor="title"
+                            >
                                 {t('portfolio.form.title')}
                             </label>
                             <input
                                 id="title"
                                 type="text"
                                 value={data.title}
-                                onChange={(e) => setData('title', e.target.value)}
-                                className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                onChange={(e) =>
+                                    setData('title', e.target.value)
+                                }
+                                className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                 required
                             />
                             {errors.title && (
-                                <p className="text-xs text-red-500">{errors.title}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.title}
+                                </p>
                             )}
                         </div>
                         <ListingTypeSelector
@@ -184,32 +208,46 @@ export default function DashboardPortfolioCreate({
                             onSelectFocus={refreshOnDropdownFocus}
                         />
                         <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="short_description">
+                            <label
+                                className="text-xs font-medium"
+                                htmlFor="short_description"
+                            >
                                 {t('portfolio.form.short_description')}
                             </label>
                             <textarea
                                 id="short_description"
                                 value={data.short_description}
-                                onChange={(e) => setData('short_description', e.target.value)}
+                                onChange={(e) =>
+                                    setData('short_description', e.target.value)
+                                }
                                 rows={2}
-                                className="w-full rounded-md border border-sidebar-border bg-background px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                className="w-full rounded-md border border-sidebar-border bg-background px-3 py-2 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             />
                             {errors.short_description && (
-                                <p className="text-xs text-red-500">{errors.short_description}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.short_description}
+                                </p>
                             )}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="description">
+                            <label
+                                className="text-xs font-medium"
+                                htmlFor="description"
+                            >
                                 {t('portfolio.form.description')}
                             </label>
                             <TinyTextEditor
                                 id="description"
                                 value={data.description}
-                                onChange={(value) => setData('description', value)}
+                                onChange={(value) =>
+                                    setData('description', value)
+                                }
                                 className="rounded-md border border-sidebar-border/70 bg-background p-2"
                             />
                             {errors.description && (
-                                <p className="text-xs text-red-500">{errors.description}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.description}
+                                </p>
                             )}
                         </div>
                         <PropertyCharacteristicsFields
@@ -222,7 +260,10 @@ export default function DashboardPortfolioCreate({
                         />
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             <div className="space-y-1">
-                                <label className="text-xs font-medium" htmlFor="external_storia_url">
+                                <label
+                                    className="text-xs font-medium"
+                                    htmlFor="external_storia_url"
+                                >
                                     {t('portfolio.form.storia_url')}
                                 </label>
                                 <input
@@ -230,16 +271,26 @@ export default function DashboardPortfolioCreate({
                                     type="url"
                                     inputMode="url"
                                     value={data.external_storia_url}
-                                    onChange={(e) => setData('external_storia_url', e.target.value)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'external_storia_url',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="https://www.storia.ro/…"
-                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                 />
                                 {errors.external_storia_url && (
-                                    <p className="text-xs text-red-500">{errors.external_storia_url}</p>
+                                    <p className="text-xs text-red-500">
+                                        {errors.external_storia_url}
+                                    </p>
                                 )}
                             </div>
                             <div className="space-y-1">
-                                <label className="text-xs font-medium" htmlFor="external_imobiliare_url">
+                                <label
+                                    className="text-xs font-medium"
+                                    htmlFor="external_imobiliare_url"
+                                >
                                     {t('portfolio.form.imobiliare_url')}
                                 </label>
                                 <input
@@ -247,16 +298,26 @@ export default function DashboardPortfolioCreate({
                                     type="url"
                                     inputMode="url"
                                     value={data.external_imobiliare_url}
-                                    onChange={(e) => setData('external_imobiliare_url', e.target.value)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'external_imobiliare_url',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="https://www.imobiliare.ro/…"
-                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                 />
                                 {errors.external_imobiliare_url && (
-                                    <p className="text-xs text-red-500">{errors.external_imobiliare_url}</p>
+                                    <p className="text-xs text-red-500">
+                                        {errors.external_imobiliare_url}
+                                    </p>
                                 )}
                             </div>
                             <div className="space-y-1 sm:col-span-2 lg:col-span-1">
-                                <label className="text-xs font-medium" htmlFor="external_olx_url">
+                                <label
+                                    className="text-xs font-medium"
+                                    htmlFor="external_olx_url"
+                                >
                                     {t('portfolio.form.olx_url')}
                                 </label>
                                 <input
@@ -264,43 +325,69 @@ export default function DashboardPortfolioCreate({
                                     type="url"
                                     inputMode="url"
                                     value={data.external_olx_url}
-                                    onChange={(e) => setData('external_olx_url', e.target.value)}
+                                    onChange={(e) =>
+                                        setData(
+                                            'external_olx_url',
+                                            e.target.value,
+                                        )
+                                    }
                                     placeholder="https://www.olx.ro/d/oferta/…"
-                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                 />
                                 {errors.external_olx_url && (
-                                    <p className="text-xs text-red-500">{errors.external_olx_url}</p>
+                                    <p className="text-xs text-red-500">
+                                        {errors.external_olx_url}
+                                    </p>
                                 )}
                             </div>
                         </div>
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="space-y-1">
-                                <label className="text-xs font-medium" htmlFor="zone">
+                                <label
+                                    className="text-xs font-medium"
+                                    htmlFor="zone"
+                                >
                                     Oras / zona
                                 </label>
                                 <input
                                     id="zone"
                                     type="text"
                                     value={data.zone}
-                                    onChange={(e) => setData('zone', e.target.value)}
+                                    onChange={(e) =>
+                                        setData('zone', e.target.value)
+                                    }
                                     placeholder="ex. Cluj-Napoca, Buna Ziua"
-                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                 />
-                                {errors.zone && <p className="text-xs text-red-500">{errors.zone}</p>}
+                                {errors.zone && (
+                                    <p className="text-xs text-red-500">
+                                        {errors.zone}
+                                    </p>
+                                )}
                             </div>
                             <div className="space-y-2">
                                 <label className="flex cursor-pointer items-center gap-2 text-xs font-medium">
                                     <input
                                         type="checkbox"
                                         checked={data.pinned_home}
-                                        onChange={(e) => setData('pinned_home', e.target.checked)}
+                                        onChange={(e) =>
+                                            setData(
+                                                'pinned_home',
+                                                e.target.checked,
+                                            )
+                                        }
                                         className="h-4 w-4 rounded border-sidebar-border"
                                     />
-                                    {listingAdmin?.pinnedHomeLabel ?? 'Pin to homepage'}
+                                    {listingAdmin?.pinnedHomeLabel ??
+                                        'Pin to homepage'}
                                 </label>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-medium" htmlFor="pinned_home_order">
-                                        {listingAdmin?.pinnedHomeOrderLabel ?? 'Pin order'}
+                                    <label
+                                        className="text-xs font-medium"
+                                        htmlFor="pinned_home_order"
+                                    >
+                                        {listingAdmin?.pinnedHomeOrderLabel ??
+                                            'Pin order'}
                                     </label>
                                     <input
                                         id="pinned_home_order"
@@ -308,18 +395,28 @@ export default function DashboardPortfolioCreate({
                                         min={0}
                                         max={9999}
                                         value={data.pinned_home_order}
-                                        onChange={(e) => setData('pinned_home_order', e.target.value)}
+                                        onChange={(e) =>
+                                            setData(
+                                                'pinned_home_order',
+                                                e.target.value,
+                                            )
+                                        }
                                         disabled={!data.pinned_home}
-                                        className="h-9 w-full max-w-[140px] rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
+                                        className="h-9 w-full max-w-[140px] rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50"
                                     />
                                     {errors.pinned_home_order && (
-                                        <p className="text-xs text-red-500">{errors.pinned_home_order}</p>
+                                        <p className="text-xs text-red-500">
+                                            {errors.pinned_home_order}
+                                        </p>
                                     )}
                                 </div>
                             </div>
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="price">
+                            <label
+                                className="text-xs font-medium"
+                                htmlFor="price"
+                            >
                                 {t('portfolio.form.price')}
                             </label>
                             <input
@@ -330,30 +427,45 @@ export default function DashboardPortfolioCreate({
                                 step="0.01"
                                 required
                                 value={data.price}
-                                onChange={(e) => setData('price', e.target.value)}
+                                onChange={(e) =>
+                                    setData('price', e.target.value)
+                                }
                                 placeholder={t('portfolio.form.price_ph')}
-                                className="h-9 w-full max-w-xs rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                className="h-9 w-full max-w-xs rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             />
-                            {errors.price && <p className="text-xs text-red-500">{errors.price}</p>}
+                            {errors.price && (
+                                <p className="text-xs text-red-500">
+                                    {errors.price}
+                                </p>
+                            )}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="is_published">
+                            <label
+                                className="text-xs font-medium"
+                                htmlFor="is_published"
+                            >
                                 {t('common.published_field')}
                             </label>
                             <select
                                 id="is_published"
                                 value={data.is_published ? '1' : '0'}
                                 onChange={(e) =>
-                                    setData('is_published', e.target.value === '1')
+                                    setData(
+                                        'is_published',
+                                        e.target.value === '1',
+                                    )
                                 }
-                                className="h-9 w-full max-w-xs rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                className="h-9 w-full max-w-xs rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             >
                                 <option value="1">{t('common.yes')}</option>
                                 <option value="0">{t('common.no')}</option>
                             </select>
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="image">
+                            <label
+                                className="text-xs font-medium"
+                                htmlFor="image"
+                            >
                                 {t('portfolio.form.image')}
                             </label>
                             <input
@@ -361,7 +473,10 @@ export default function DashboardPortfolioCreate({
                                 type="file"
                                 accept="image/*"
                                 onChange={(e) =>
-                                    setData('image', e.target.files?.[0] ?? null)
+                                    setData(
+                                        'image',
+                                        e.target.files?.[0] ?? null,
+                                    )
                                 }
                                 className="block w-full text-xs text-muted-foreground file:mr-2 file:rounded-md file:border file:border-sidebar-border file:bg-muted file:px-2 file:py-1 file:text-xs file:font-medium file:text-foreground hover:file:bg-muted/80"
                             />
@@ -370,21 +485,28 @@ export default function DashboardPortfolioCreate({
                                     <p className="mb-1 text-xs text-muted-foreground">
                                         {t('common.preview')}:
                                     </p>
-                                    <div className="overflow-hidden rounded-md border border-sidebar-border/70 bg-muted w-24 h-24">
+                                    <div className="h-24 w-24 overflow-hidden rounded-md border border-sidebar-border/70 bg-muted">
                                         <img
                                             src={imagePreview}
-                                            alt={t('portfolio.form.image_alt_preview')}
+                                            alt={t(
+                                                'portfolio.form.image_alt_preview',
+                                            )}
                                             className="h-full w-full object-cover"
                                         />
                                     </div>
                                 </div>
                             )}
                             {errors.image && (
-                                <p className="text-xs text-red-500">{errors.image}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.image}
+                                </p>
                             )}
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="gallery_images">
+                            <label
+                                className="text-xs font-medium"
+                                htmlFor="gallery_images"
+                            >
                                 {t('portfolio.form.gallery')}
                             </label>
                             <input
@@ -395,16 +517,22 @@ export default function DashboardPortfolioCreate({
                                 onChange={(e) =>
                                     setData(
                                         'gallery_images',
-                                        e.target.files ? Array.from(e.target.files) : [],
+                                        e.target.files
+                                            ? Array.from(e.target.files)
+                                            : [],
                                     )
                                 }
                                 className="block w-full text-xs text-muted-foreground file:mr-2 file:rounded-md file:border file:border-sidebar-border file:bg-muted file:px-2 file:py-1 file:text-xs file:font-medium file:text-foreground hover:file:bg-muted/80"
                             />
                             {errors.gallery_images && (
-                                <p className="text-xs text-red-500">{errors.gallery_images}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors.gallery_images}
+                                </p>
                             )}
                             {errors['gallery_images.0'] && (
-                                <p className="text-xs text-red-500">{errors['gallery_images.0']}</p>
+                                <p className="text-xs text-red-500">
+                                    {errors['gallery_images.0']}
+                                </p>
                             )}
                             {data.gallery_images.length > 0 && (
                                 <div className="space-y-2">
@@ -421,7 +549,10 @@ export default function DashboardPortfolioCreate({
                                             >
                                                 <img
                                                     src={src}
-                                                    alt={t('portfolio.form.gallery_alt', { num: index + 1 })}
+                                                    alt={t(
+                                                        'portfolio.form.gallery_alt',
+                                                        { num: index + 1 },
+                                                    )}
                                                     className="h-16 w-full object-cover"
                                                 />
                                             </div>

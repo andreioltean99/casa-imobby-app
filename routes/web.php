@@ -97,6 +97,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('dashboard/testimonials', [TestimonialDashboardController::class, 'index'])
         ->name('dashboard.testimonials.index');
+    Route::put('dashboard/testimonials/section-settings', [TestimonialDashboardController::class, 'updateSectionSettings'])
+        ->name('dashboard.testimonials.section-settings.update');
     Route::get('dashboard/testimonials/create', [TestimonialDashboardController::class, 'create'])
         ->name('dashboard.testimonials.create');
     Route::post('dashboard/testimonials', [TestimonialDashboardController::class, 'store'])

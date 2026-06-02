@@ -329,6 +329,11 @@ return [
         'index' => [
             'title' => 'Testimoniale',
             'description' => 'Citări de la clienți afișate pe pagina principală Casa Imobby.',
+            'section_visibility_title' => 'Secțiunea „Ce spun clienții noștri”',
+            'section_visibility_help' => 'Controlează dacă blocul de testimoniale apare pe pagina principală. Implicit este ascuns.',
+            'section_visibility_label' => 'Afișează secțiunea pe pagina principală',
+            'section_visibility_save' => 'Salvează setarea secțiunii',
+            'section_visibility_saved_status' => 'Setarea secțiunii de testimoniale a fost salvată.',
             'add' => 'Adaugă testimonial',
             'count_one' => ':count testimonial',
             'count_many' => ':count testimoniale',
