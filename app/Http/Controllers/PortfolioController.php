@@ -332,13 +332,10 @@ class PortfolioController extends Controller
 
         $contact = ContactSettings::resolveForLocale($portfolioItem->locale);
 
-        $listingUpdated = $portfolioItem->updated_at?->locale(app()->getLocale())->translatedFormat('d M Y');
-
         return Inertia::render('public/portfolio-project', [
             'portfolioItem' => $portfolioItem,
             'similarItems' => $similarItems,
             'contact' => $contact,
-            'listingUpdated' => $listingUpdated,
             'translations' => [
                 'portfolio' => trans('website.portfolio'),
                 'units' => trans('website.units'),

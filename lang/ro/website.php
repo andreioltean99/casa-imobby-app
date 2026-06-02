@@ -181,6 +181,7 @@ return [
         'city_other' => 'Alte zone',
         'filter_no_results' => 'Nu există opțiuni care să se potrivească',
         'filter_city_placeholder' => 'Caută sau alege oraș / cartier…',
+        'filter_value_placeholder' => 'Caută sau alege…',
         'submit_search' => 'Caută',
         'submit_offer' => 'Cere ofertă',
     ],

@@ -1,6 +1,7 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { PublicSearchableSelect } from '@/components/public/PublicSearchableSelect';
 import { cn } from '@/lib/utils';
 import { PROPERTIES_INDEX_PATH, propertiesIndexUrl } from '@/lib/public-properties-path';
 
@@ -31,6 +32,9 @@ type PropertySearchLabels = {
     city_iasi: string;
     city_oradea: string;
     city_other: string;
+    filter_no_results?: string;
+    filter_city_placeholder?: string;
+    filter_value_placeholder?: string;
 };
 
 type PortfolioFilterLabels = {
@@ -95,11 +99,11 @@ function filterParams(
         dynamic: patch.dynamic !== undefined ? patch.dynamic : state.dynamic,
     };
 
-    if (merged.category) {
-        return { category: merged.category };
-    }
-
     const out: Record<string, string> = {};
+
+    if (merged.category) {
+        out.category = merged.category;
+    }
     if (merged.deal) {
         out.deal = merged.deal;
     }
@@ -177,6 +181,33 @@ export function PropertiesFiltersSidebar({
     );
 
     const countLabel = pf.filters_listings_count.replace(':count', String(listingsCount));
+    const filterNoResults = ps.filter_no_results ?? 'No matching options';
+    const filterCityPlaceholder = ps.filter_city_placeholder ?? pf.filters_city_any;
+    const filterValuePlaceholder = ps.filter_value_placeholder ?? pf.filters_type_any;
+
+    const citySelectOptions = useMemo(
+        () => cityZoneOptions.map((zone) => ({ value: zone, label: zone })),
+        [cityZoneOptions],
+    );
+
+    const preserveCategoryPatch = (
+        patch: Partial<PropertiesFilterState & { category?: string | null }>,
+    ): Partial<PropertiesFilterState & { category?: string | null }> => {
+        if (filterState.category && patch.category === undefined) {
+            return { ...patch, category: filterState.category };
+        }
+
+        return patch;
+    };
+
+    const navigateWithFilters = (
+        patch: Partial<PropertiesFilterState & { category?: string | null }>,
+    ) => {
+        router.visit(propertiesIndexUrl(filterParams(filterState, preserveCategoryPatch(patch))), {
+            preserveScroll: true,
+        });
+    };
+
     const toggleGroup = (key: string) => {
         setOpenGroups((curr) => ({ ...curr, [key]: !curr[key] }));
     };
@@ -210,31 +241,39 @@ export function PropertiesFiltersSidebar({
                                 <input type="hidden" name="category" value={filterState.category} />
                             ) : null}
                             {filterState.q ? <input type="hidden" name="q" value={filterState.q} /> : null}
-                            {searchablePropertyFilters.map((filter) => (
-                                <div key={filter.id} className="space-y-1.5">
-                                    <label className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                                        {filter.label}
-                                    </label>
-                                    <select
-                                        name={`pf_${filter.key}`}
-                                        value={dynamicDraft[filter.key] ?? ''}
-                                        onChange={(e) =>
-                                            setDynamicDraft((curr) => ({
-                                                ...curr,
-                                                [filter.key]: e.target.value,
-                                            }))
-                                        }
-                                        className="h-9 w-full rounded-md border border-border bg-background px-2 text-xs outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-brand"
-                                    >
-                                        <option value="">{pf.filters_type_any}</option>
-                                        {filter.values.map((value) => (
-                                            <option key={value} value={value}>
-                                                {value}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            ))}
+                            {searchablePropertyFilters.map((filter) => {
+                                const draftValue = dynamicDraft[filter.key] ?? '';
+
+                                return (
+                                    <div key={filter.id}>
+                                        {draftValue ? (
+                                            <input
+                                                type="hidden"
+                                                name={`pf_${filter.key}`}
+                                                value={draftValue}
+                                            />
+                                        ) : null}
+                                        <PublicSearchableSelect
+                                            inputId={`pf-filter-${filter.key}`}
+                                            label={filter.label}
+                                            value={draftValue}
+                                            onChange={(next) =>
+                                                setDynamicDraft((curr) => ({
+                                                    ...curr,
+                                                    [filter.key]: next,
+                                                }))
+                                            }
+                                            options={filter.values.map((value) => ({
+                                                value,
+                                                label: value,
+                                            }))}
+                                            placeholder={filterValuePlaceholder}
+                                            noOptionsMessage={filterNoResults}
+                                            anyOptionLabel={filterValuePlaceholder}
+                                        />
+                                    </div>
+                                );
+                            })}
                             <button
                                 type="submit"
                                 className="w-full rounded-md bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand/90 dark:bg-sky-500 dark:hover:bg-sky-500/90"
@@ -311,33 +350,23 @@ export function PropertiesFiltersSidebar({
                     <span>{pf.filters_city}</span>
                     <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', openGroups.city ? 'rotate-180' : '')} />
                 </button>
-                {openGroups.city ? <nav className="flex flex-col gap-0.5 border-l border-border/60 pl-2">
-                    <Link
-                        href={propertiesIndexUrl(
-                            filterParams(filterState, {
-                                category: null,
-                                city: null,
-                            }),
-                        )}
-                        className={navLinkClass(!filterState.city && !filterState.category)}
-                    >
-                        {pf.filters_city_any}
-                    </Link>
-                    {cityZoneOptions.map((zone) => (
-                        <Link
-                            key={zone}
-                            href={propertiesIndexUrl(
-                                filterParams(filterState, {
-                                    category: null,
-                                    city: zone,
-                                }),
-                            )}
-                            className={navLinkClass(filterState.city === zone && !filterState.category)}
-                        >
-                            {zone}
-                        </Link>
-                    ))}
-                </nav> : null}
+                {openGroups.city ? (
+                    <div className="border-l border-border/60 pl-2">
+                        <PublicSearchableSelect
+                            inputId="portfolio-filter-city"
+                            value={filterState.city ?? ''}
+                            onChange={(city) =>
+                                navigateWithFilters({
+                                    city: city || null,
+                                })
+                            }
+                            options={citySelectOptions}
+                            placeholder={filterCityPlaceholder}
+                            noOptionsMessage={filterNoResults}
+                            anyOptionLabel={pf.filters_city_any}
+                        />
+                    </div>
+                ) : null}
             </div>
 
         </aside>

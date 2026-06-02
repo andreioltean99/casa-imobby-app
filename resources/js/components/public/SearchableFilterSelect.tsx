@@ -42,7 +42,7 @@ function foldForMatch(s: string): string {
 
 type Props = {
     id: string;
-    label: string;
+    label?: string;
     value: string;
     onValueChange: (next: string) => void;
     options: SearchableFilterOption[];
@@ -69,11 +69,15 @@ export function SearchableFilterSelect({
     inlineEnd,
 }: Props) {
     const [query, setQuery] = useState('');
+    const [isFocused, setIsFocused] = useState(false);
 
-    const selectedLabel = useMemo(
-        () => options.find((o) => o.value === value)?.label ?? '',
-        [options, value],
-    );
+    const selectedLabel = useMemo(() => {
+        if (!value) {
+            return '';
+        }
+
+        return options.find((o) => o.value === value)?.label ?? '';
+    }, [options, value]);
 
     useEffect(() => {
         setQuery('');
@@ -111,7 +115,6 @@ export function SearchableFilterSelect({
     return (
         <Combobox
             value={value}
-            immediate
             onClose={() => setQuery('')}
             onChange={(next: string | null) => {
                 if (next != null) {
@@ -121,15 +124,17 @@ export function SearchableFilterSelect({
             }}
         >
             <div className={cn('space-y-1.5', isLarge && 'space-y-2')}>
-                <Label
-                    htmlFor={id}
-                    className={cn(
-                        'font-medium text-muted-foreground',
-                        isLarge ? 'text-sm text-foreground' : 'text-xs',
-                    )}
-                >
-                    {label}
-                </Label>
+                {label ? (
+                    <Label
+                        htmlFor={id}
+                        className={cn(
+                            'font-medium text-muted-foreground',
+                            isLarge ? 'text-sm text-foreground' : 'text-xs',
+                        )}
+                    >
+                        {label}
+                    </Label>
+                ) : null}
                 <div
                     className={cn(
                         inlineEnd ? 'flex min-w-0 flex-row items-stretch gap-2 sm:gap-3' : 'block',
@@ -150,15 +155,36 @@ export function SearchableFilterSelect({
                         <ComboboxInput
                             id={id}
                             className={inputClass}
-                            displayValue={(v) =>
-                                query !== '' ? query : options.find((o) => o.value === v)?.label ?? ''
-                            }
+                            displayValue={(v) => {
+                                if (query !== '') {
+                                    return query;
+                                }
+
+                                if (!v) {
+                                    return '';
+                                }
+
+                                return options.find((o) => o.value === v)?.label ?? '';
+                            }}
                             onChange={(e) => {
-                                const next = extractTypedSearch(e.target.value, selectedLabel);
-                                setQuery(next);
+                                const raw = e.target.value;
+
+                                if (!value) {
+                                    setQuery(raw);
+                                    return;
+                                }
+
+                                setQuery(extractTypedSearch(raw, selectedLabel));
                             }}
                             onFocus={(e) => {
+                                setIsFocused(true);
                                 const el = e.currentTarget;
+
+                                if (!value) {
+                                    setQuery('');
+                                    return;
+                                }
+
                                 requestAnimationFrame(() => {
                                     try {
                                         el.setSelectionRange(0, el.value.length);
@@ -167,7 +193,12 @@ export function SearchableFilterSelect({
                                     }
                                 });
                             }}
-                            placeholder={placeholder}
+                            onBlur={() => {
+                                setIsFocused(false);
+                            }}
+                            placeholder={
+                                !value && query === '' && !isFocused ? placeholder : undefined
+                            }
                             autoComplete="off"
                         />
                         <ComboboxButton
@@ -194,7 +225,11 @@ export function SearchableFilterSelect({
                                 <div className="px-3 py-2.5 text-sm text-muted-foreground">{noResultsLabel}</div>
                             ) : (
                                 filtered.map((o) => (
-                                    <ComboboxOption key={o.value} value={o.value} className={optionClass}>
+                                    <ComboboxOption
+                                        key={o.value === '' ? '__any__' : o.value}
+                                        value={o.value}
+                                        className={optionClass}
+                                    >
                                         <span className="block min-w-0 truncate">{o.label}</span>
                                     </ComboboxOption>
                                 ))

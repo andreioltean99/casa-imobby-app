@@ -177,7 +177,7 @@ export function PortfolioSection({
                 </div>
             ) : null}
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
                 {items.map((project, index) => {
                     const cardContent = (
                         <Card
@@ -191,9 +191,9 @@ export function PortfolioSection({
                                     : undefined
                             }
                         >
-                            <CardContent className="space-y-2 p-3">
+                            <CardContent className="space-y-2.5 p-4 sm:space-y-2 sm:p-3">
                                 {project.image_path ? (
-                                    <div className="aspect-video overflow-hidden rounded-lg ring-1 ring-border/60">
+                                    <div className="aspect-[4/3] overflow-hidden rounded-lg ring-1 ring-border/60 sm:aspect-video">
                                         <img
                                             src={`/storage/${project.image_path}`}
                                             alt={project.title}
@@ -201,7 +201,7 @@ export function PortfolioSection({
                                         />
                                     </div>
                                 ) : (
-                                    <div className="aspect-video rounded-lg bg-gradient-to-br from-neutral-100 via-neutral-50 to-brand-accent-soft ring-1 ring-border/60 dark:from-neutral-900 dark:via-neutral-900 dark:to-brand-accent/15 dark:ring-border/40" />
+                                    <div className="aspect-[4/3] rounded-lg bg-gradient-to-br from-neutral-100 via-neutral-50 to-brand-accent-soft ring-1 ring-border/60 sm:aspect-video dark:from-neutral-900 dark:via-neutral-900 dark:to-brand-accent/15 dark:ring-border/40" />
                                 )}
                                 <div className="space-y-1">
                                     <p className="text-[11px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
@@ -210,17 +210,17 @@ export function PortfolioSection({
                                             ' #' +
                                             (index + 1)}
                                     </p>
-                                    <h3 className="text-sm font-semibold">
+                                    <h3 className="text-base font-semibold leading-snug sm:text-sm">
                                         {project.title}
                                     </h3>
                                     {formatCardPrice(project.price) ? (
-                                        <p className="text-sm font-semibold text-foreground">
+                                        <p className="text-base font-semibold text-foreground sm:text-sm">
                                             {formatCardPrice(project.price)}
                                         </p>
                                     ) : null}
                                     {(project.short_description ||
                                         project.description) && (
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-sm text-muted-foreground sm:text-xs">
                                             {getDescriptionPreview(
                                                 project.short_description ??
                                                     project.description,

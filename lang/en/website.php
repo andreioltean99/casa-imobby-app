@@ -181,6 +181,7 @@ return [
         'city_other' => 'Other areas',
         'filter_no_results' => 'No matching options',
         'filter_city_placeholder' => 'Search or choose a city / neighbourhood…',
+        'filter_value_placeholder' => 'Search or choose…',
         'submit_search' => 'Search',
         'submit_offer' => 'Request offer',
     ],

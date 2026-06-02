@@ -13,7 +13,7 @@ export default function PropertyFiltersCreate() {
         name_en: '',
         name_ro: '',
         is_active: true,
-        is_searchable: true,
+        is_searchable: false,
         sort_order: '',
     });
 

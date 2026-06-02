@@ -69,7 +69,7 @@ export function HomePortfolioCategories({ blocks, categoryTitles: categoryTitles
     }
 
     const imageBlock = (imagePath: string | null, priceLabel: string | null) => (
-        <div className="relative aspect-video overflow-hidden rounded-md ring-1 ring-border/50">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-md ring-1 ring-border/50 sm:aspect-video">
             {imagePath ? (
                 <img
                     src={`/storage/${imagePath}`}
@@ -119,10 +119,10 @@ export function HomePortfolioCategories({ blocks, categoryTitles: categoryTitles
                             return (
                                 <Link key={project.id} href={href} className="group block h-full">
                                     <Card className="h-full border-border/60 bg-card/90 py-0 transition hover:border-brand/35 hover:shadow-md dark:bg-card/50">
-                                        <CardContent className="space-y-1.5 p-2 sm:p-2.5">
+                                        <CardContent className="space-y-2 p-3 sm:space-y-1.5 sm:p-2.5">
                                             {imageBlock(project.image_path, priceLabel)}
                                             <div className="space-y-1">
-                                                <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground group-hover:text-brand">
+                                                <h3 className="line-clamp-2 text-base font-semibold leading-snug text-foreground group-hover:text-brand sm:text-sm">
                                                     {project.title}
                                                 </h3>
                                                 {(project.short_description || project.description) && (

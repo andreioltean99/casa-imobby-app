@@ -2,10 +2,19 @@ import { usePage } from '@inertiajs/react';
 import { useAppearance } from '@/hooks/use-appearance';
 
 export function Footer() {
-    const { translations } = usePage().props as { translations?: any };
+    const { translations, websiteUi } = usePage().props as {
+        translations?: Record<string, unknown>;
+        websiteUi?: {
+            footer?: Record<string, string>;
+            brand?: Record<string, string>;
+        };
+    };
     const { resolvedAppearance } = useAppearance();
-    const tFooter = translations?.footer ?? {};
-    const siteName = translations?.brand?.site_name ?? 'Casa Imobby';
+    const tFooter = websiteUi?.footer ?? (translations?.footer as Record<string, string> | undefined) ?? {};
+    const siteName =
+        websiteUi?.brand?.site_name ??
+        (translations?.brand as Record<string, string> | undefined)?.site_name ??
+        'Casa Imobby';
     return (
         <footer className="border-t border-border/60 bg-background/90 dark:bg-[#0c1520]">
             <div

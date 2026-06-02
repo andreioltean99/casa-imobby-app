@@ -7,12 +7,17 @@ import { useEffect, useState } from 'react';
 
 export function Header() {
     const page = usePage();
-    const { locale, availableLocales, translations } = page.props as {
+    const { locale, availableLocales, translations, websiteUi } = page.props as {
         locale?: string;
         availableLocales?: string[];
-        translations?: any;
+        translations?: Record<string, unknown>;
+        websiteUi?: {
+            nav?: Record<string, string>;
+            brand?: Record<string, string>;
+        };
     };
-    const tBrand = translations?.brand ?? {};
+    const tNav = websiteUi?.nav ?? (translations?.nav as Record<string, string> | undefined) ?? {};
+    const tBrand = websiteUi?.brand ?? (translations?.brand as Record<string, string> | undefined) ?? {};
     const currentPath = page.url.split('?')[0] || '/';
     const sectionHref = (section: 'properties' | 'about' | 'contact') => {
         if (section === 'contact') {
@@ -76,13 +81,13 @@ export function Header() {
 
                 <nav className="hidden items-center gap-6 text-sm font-medium text-muted-foreground sm:flex">
                     <a href={sectionHref('properties')} className="transition-colors hover:text-brand">
-                        {translations?.nav?.portfolio ?? 'Properties'}
+                        {tNav.portfolio ?? 'Properties'}
                     </a>
                     <a href={sectionHref('about')} className="transition-colors hover:text-brand">
-                        {translations?.nav?.about ?? 'About us'}
+                        {tNav.about ?? 'About us'}
                     </a>
                     <a href={sectionHref('contact')} className="transition-colors hover:text-brand">
-                        {translations?.nav?.contact ?? 'Contact'}
+                        {tNav.contact ?? 'Contact'}
                     </a>
                 </nav>
 
@@ -139,19 +144,19 @@ export function Header() {
                         href={sectionHref('properties')}
                         className="inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center whitespace-nowrap rounded-full border border-border/70 bg-background px-3 py-2.5 leading-snug hover:text-brand"
                     >
-                        {translations?.nav?.portfolio ?? 'Properties'}
+                        {tNav.portfolio ?? 'Properties'}
                     </a>
                     <a
                         href={sectionHref('about')}
                         className="inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center whitespace-nowrap rounded-full border border-border/70 bg-background px-3 py-2.5 leading-snug hover:text-brand"
                     >
-                        {translations?.nav?.about ?? 'About us'}
+                        {tNav.about ?? 'About us'}
                     </a>
                     <a
                         href={sectionHref('contact')}
                         className="inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center whitespace-nowrap rounded-full border border-border/70 bg-background px-3 py-2.5 leading-snug hover:text-brand"
                     >
-                        {translations?.nav?.contact ?? 'Contact'}
+                        {tNav.contact ?? 'Contact'}
                     </a>
                 </nav>
             </div>

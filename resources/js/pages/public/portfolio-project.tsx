@@ -70,7 +70,6 @@ type Props = {
     portfolioItem: PortfolioItem;
     similarItems: SimilarItem[];
     contact: Record<string, unknown> | null;
-    listingUpdated: string | null;
 };
 
 function listingHref(item: { id: number; slug: string | null }) {
@@ -181,14 +180,12 @@ export default function PortfolioProjectPage({
     portfolioItem,
     similarItems,
     contact,
-    listingUpdated,
 }: Props) {
     const {
         title,
         short_description,
         description,
         image_path,
-        date,
         duration,
         price,
         gallery,
@@ -355,11 +352,6 @@ export default function PortfolioProjectPage({
             );
     }, [portfolioItem.property_filter_values, appLocale]);
 
-    const showListingDate =
-        typeof date === 'string' &&
-        date.trim() !== '' &&
-        !/^\d{4}$/.test(date.trim());
-
     const formattedPrice = useMemo(() => {
         if (price === null || price === undefined || price === '') {
             return null;
@@ -456,25 +448,6 @@ export default function PortfolioProjectPage({
                                     <span className="font-medium text-foreground">
                                         {refLabel}
                                     </span>
-                                    {listingUpdated ? (
-                                        <span>
-                                            {(tPortfolio.listing_updated ??
-                                                'Updated') + ': '}
-                                            <span className="text-foreground">
-                                                {listingUpdated}
-                                            </span>
-                                        </span>
-                                    ) : null}
-                                    {showListingDate ? (
-                                        <span>
-                                            {(tPortfolio.listing_date ??
-                                                tPortfolio.pdf_meta_date ??
-                                                'Date') + ': '}
-                                            <span className="text-foreground">
-                                                {date}
-                                            </span>
-                                        </span>
-                                    ) : null}
                                     {duration ? (
                                         <span>
                                             {(tPortfolio.duration_label ??

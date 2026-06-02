@@ -27,5 +27,23 @@ class PropertyFilterStoreTest extends TestCase
         $filter = PropertyFilter::query()->where('name_ro', 'Camere')->first();
         $this->assertNotNull($filter);
         $this->assertMatchesRegularExpression('/^pf_[a-z0-9]{12}$/', $filter->key);
+        $this->assertTrue($filter->is_searchable);
+    }
+
+    public function test_new_property_filter_is_not_searchable_by_default(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('dashboard.property-characteristics.store'), [
+            'name_ro' => 'Parcare',
+            'is_active' => true,
+        ]);
+
+        $response->assertRedirect(route('dashboard.property-characteristics.index'));
+        $response->assertSessionHasNoErrors();
+
+        $filter = PropertyFilter::query()->where('name_ro', 'Parcare')->first();
+        $this->assertNotNull($filter);
+        $this->assertFalse($filter->is_searchable);
     }
 }

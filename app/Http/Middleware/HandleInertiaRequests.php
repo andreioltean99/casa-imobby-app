@@ -45,6 +45,11 @@ class HandleInertiaRequests extends Middleware
             'appUrl' => rtrim((string) config('app.url', $request->getSchemeAndHttpHost()), '/'),
             'locale' => app()->getLocale(),
             'availableLocales' => (array) config('app.available_locales', ['ro', 'en']),
+            'websiteUi' => fn () => [
+                'nav' => Lang::get('website.nav'),
+                'brand' => Lang::get('website.brand'),
+                'footer' => Lang::get('website.footer'),
+            ],
             'authUi' => Lang::get('auth'),
             'auth' => [
                 'user' => $request->user(),
