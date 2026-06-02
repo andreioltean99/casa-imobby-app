@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
     isLikelyHtmlDescription,
     listingDescriptionContentClass,
@@ -10,7 +10,8 @@ type Props = {
     className?: string;
 };
 
-const LONG_TEXT_THRESHOLD = 750;
+const LONG_TEXT_THRESHOLD = 900;
+const LONG_LINES_THRESHOLD = 8;
 
 /**
  * Renders listing description with the same layout as TinyTextEditor in admin.
@@ -19,7 +20,6 @@ const LONG_TEXT_THRESHOLD = 750;
 export function ListingDescriptionContent({ content, className }: Props) {
     const { locale } = usePage().props as { locale?: string };
     const [expanded, setExpanded] = useState(false);
-    const contentRef = useRef<HTMLDivElement>(null);
     const value = content.trim();
 
     const classNames = listingDescriptionContentClass(className);
@@ -27,24 +27,14 @@ export function ListingDescriptionContent({ content, className }: Props) {
         () => value.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().length,
         [value],
     );
-    const longByCharacters = plainTextLength > LONG_TEXT_THRESHOLD;
-    const [showToggle, setShowToggle] = useState(longByCharacters);
-
-    useLayoutEffect(() => {
-        const el = contentRef.current;
-        if (!el || value === '') {
-            setShowToggle(false);
-            return;
-        }
-
-        if (expanded) {
-            setShowToggle(longByCharacters);
-            return;
-        }
-
-        const overflows = el.scrollHeight > el.clientHeight + 4;
-        setShowToggle(longByCharacters || overflows);
-    }, [value, expanded, longByCharacters]);
+    const explicitLines = useMemo(() => {
+        const normalized = value
+            .replace(/<\s*br\s*\/?>/gi, '\n')
+            .replace(/<\/\s*(p|div|li|h[1-6])\s*>/gi, '\n');
+        return normalized.split('\n').filter((line) => line.trim() !== '').length;
+    }, [value]);
+    const showToggle =
+        plainTextLength > LONG_TEXT_THRESHOLD || explicitLines > LONG_LINES_THRESHOLD;
 
     if (value === '') {
         return null;
@@ -71,7 +61,6 @@ export function ListingDescriptionContent({ content, className }: Props) {
         return (
             <div className="space-y-2">
                 <div
-                    ref={contentRef}
                     className={contentClassName}
                     dangerouslySetInnerHTML={{ __html: value }}
                 />
@@ -82,7 +71,7 @@ export function ListingDescriptionContent({ content, className }: Props) {
 
     return (
         <div className="space-y-2">
-            <div ref={contentRef} className={contentClassName}>
+            <div className={contentClassName}>
                 {value}
             </div>
             {toggleButton}
