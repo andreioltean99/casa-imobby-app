@@ -328,40 +328,7 @@ class PortfolioController extends Controller
             'propertyFilterValues.propertyFilter' => fn ($q) => $q->select(['id', 'key', 'name_en', 'name_ro']),
         ]);
 
-        $similarItems = PortfolioItem::query()
-            ->where('is_published', true)
-            ->where('locale', $portfolioItem->locale)
-            ->where('id', '!=', $portfolioItem->id)
-            ->orderByRaw('COALESCE(sort_order, 999999)')
-            ->orderBy('id')
-            ->limit(4)
-            ->get([
-                'id',
-                'title',
-                'slug',
-                'short_description',
-                'image_path',
-                'date',
-                'duration',
-            ]);
-
-        if ($similarItems->isEmpty()) {
-            $similarItems = PortfolioItem::query()
-                ->where('is_published', true)
-                ->where('id', '!=', $portfolioItem->id)
-                ->orderByRaw('COALESCE(sort_order, 999999)')
-                ->orderBy('id')
-                ->limit(4)
-                ->get([
-                    'id',
-                    'title',
-                    'slug',
-                    'short_description',
-                    'image_path',
-                    'date',
-                    'duration',
-                ]);
-        }
+        $similarItems = $this->similarPublishedListings($portfolioItem);
 
         $contact = ContactSettings::resolveForLocale($portfolioItem->locale);
 
@@ -379,6 +346,40 @@ class PortfolioController extends Controller
             'locale' => app()->getLocale(),
             'availableLocales' => config('app.available_locales', ['ro', 'en']),
         ]);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, PortfolioItem>
+     */
+    protected function similarPublishedListings(PortfolioItem $portfolioItem)
+    {
+        $query = PortfolioItem::query()
+            ->excludeDemo()
+            ->where('is_published', true)
+            ->where('locale', $portfolioItem->locale)
+            ->where('id', '!=', $portfolioItem->id);
+
+        $externalRef = trim((string) ($portfolioItem->external_listing_ref ?? ''));
+        if ($externalRef !== '') {
+            $query->where(function (Builder $q) use ($externalRef) {
+                $q->whereNull('external_listing_ref')
+                    ->orWhere('external_listing_ref', '!=', $externalRef);
+            });
+        }
+
+        return $query
+            ->orderByRaw('COALESCE(sort_order, 999999)')
+            ->orderBy('id')
+            ->limit(4)
+            ->get([
+                'id',
+                'title',
+                'slug',
+                'short_description',
+                'image_path',
+                'date',
+                'duration',
+            ]);
     }
 
     protected function resolvePublishedListing(string $identifier): PortfolioItem

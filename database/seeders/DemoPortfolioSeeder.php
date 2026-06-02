@@ -13,14 +13,15 @@ class DemoPortfolioSeeder extends Seeder
     public function run(): void
     {
         PortfolioItem::query()->updateOrCreate(
-            ['slug' => 'exemplu-cluj', 'locale' => 'ro'],
+            ['external_listing_ref' => 'DEMO-EXEMPLU-CLUJ', 'locale' => 'ro'],
             [
+                'slug' => 'exemplu-cluj-pending',
                 'title' => 'Apartament de închiriat — exemplu Cluj-Napoca',
                 'short_description' => 'Listare demonstrativă (categoria „Apartamente de închiriat” pe pagina principală).',
                 'listing_category' => 'apartment_rent',
                 'pinned_home' => true,
                 'pinned_home_order' => 1,
-                'external_listing_ref' => null,
+                'external_listing_ref' => 'DEMO-EXEMPLU-CLUJ',
                 'external_storia_url' => 'https://www.storia.ro/',
                 'external_imobiliare_url' => 'https://www.imobiliare.ro/',
                 'external_olx_url' => 'https://www.olx.ro/',
@@ -40,8 +41,9 @@ HTML,
         );
 
         PortfolioItem::query()->updateOrCreate(
-            ['slug' => 'demo-teren-cluj', 'locale' => 'ro'],
+            ['external_listing_ref' => 'DEMO-TEREN-CLUJ', 'locale' => 'ro'],
             [
+                'slug' => 'demo-teren-cluj-pending',
                 'title' => 'Teren intravilan — exemplu (demo)',
                 'short_description' => 'Listare demonstrativă pentru secțiunea „Terenuri”.',
                 'description' => '<p>Înlocuiește acest text cu detaliile reale ale terenului.</p>',
@@ -50,6 +52,7 @@ HTML,
                 'duration' => null,
                 'price' => 95000,
                 'listing_category' => 'land_sale',
+                'external_listing_ref' => 'DEMO-TEREN-CLUJ',
                 'pinned_home' => false,
                 'pinned_home_order' => null,
                 'is_published' => true,
@@ -58,8 +61,9 @@ HTML,
         );
 
         PortfolioItem::query()->updateOrCreate(
-            ['slug' => 'sample-listing', 'locale' => 'en'],
+            ['external_listing_ref' => 'DEMO-EN-SAMPLE', 'locale' => 'en'],
             [
+                'slug' => 'sample-listing-pending',
                 'title' => 'House for sale — sample (demo)',
                 'short_description' => 'Demo entry mapped to “Houses for sale” on the home page.',
                 'listing_category' => 'case_sale',

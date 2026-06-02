@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\PortfolioItemFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,6 +16,13 @@ class PortfolioItem extends Model
     use HasFactory;
 
     public const PUBLIC_REF_PREFIX = 'CIMB';
+
+    /** @var list<string> Slugs seeded for layout demos — never shown as “similar listings”. */
+    public const DEMO_SLUGS = [
+        'exemplu-cluj',
+        'demo-teren-cluj',
+        'sample-listing',
+    ];
 
     protected $fillable = [
         'title',
@@ -64,6 +72,38 @@ class PortfolioItem extends Model
         return $this->belongsToMany(PropertyFilter::class, 'portfolio_item_property_filter_values')
             ->withPivot(['value', 'sort_order'])
             ->withTimestamps();
+    }
+
+    /**
+     * @param  Builder<PortfolioItem>  $query
+     * @return Builder<PortfolioItem>
+     */
+    public function scopeExcludeDemo(Builder $query): Builder
+    {
+        return $query
+            ->where(function (Builder $q) {
+                $q->whereNull('external_listing_ref')
+                    ->orWhere('external_listing_ref', 'not like', 'DEMO-%');
+            })
+            ->where(function (Builder $q) {
+                $q->whereRaw('lower(title) not like ?', ['%exemplu%'])
+                    ->whereRaw('lower(title) not like ?', ['%(demo)%'])
+                    ->whereRaw('lower(title) not like ?', ['%sample (demo)%']);
+            });
+    }
+
+    public function isDemoListing(): bool
+    {
+        $ref = trim((string) ($this->external_listing_ref ?? ''));
+        if (str_starts_with(strtoupper($ref), 'DEMO-')) {
+            return true;
+        }
+
+        $title = mb_strtolower(trim((string) $this->title));
+
+        return str_contains($title, 'exemplu')
+            || str_contains($title, '(demo)')
+            || str_contains($title, 'sample (demo)');
     }
 
     protected static function booted(): void

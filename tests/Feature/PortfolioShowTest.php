@@ -68,6 +68,87 @@ class PortfolioShowTest extends TestCase
             );
     }
 
+    public function test_exclude_demo_scope_ignores_seeded_demo_slugs(): void
+    {
+        PortfolioItem::factory()->create([
+            'slug' => 'cimb-real',
+            'locale' => 'ro',
+            'is_published' => true,
+            'listing_category' => 'apartment_sale',
+        ]);
+
+        PortfolioItem::factory()->create([
+            'title' => 'Apartament de închiriat — exemplu Cluj-Napoca',
+            'locale' => 'ro',
+            'is_published' => true,
+            'listing_category' => 'apartment_rent',
+            'price' => 650,
+        ]);
+
+        $this->assertSame(
+            1,
+            PortfolioItem::query()->excludeDemo()->count(),
+        );
+    }
+
+    public function test_portfolio_show_omits_similar_section_when_only_one_real_listing_exists(): void
+    {
+        $item = PortfolioItem::factory()->create([
+            'slug' => 'cimb-6',
+            'locale' => 'ro',
+            'is_published' => true,
+            'listing_category' => 'apartment_sale',
+        ]);
+
+        PortfolioItem::factory()->create([
+            'title' => 'Apartament de închiriat — exemplu Cluj-Napoca',
+            'locale' => 'ro',
+            'is_published' => true,
+            'listing_category' => 'apartment_rent',
+            'price' => 650,
+        ]);
+
+        $this->get(route('portfolio.show', ['slug' => $item->fresh()->slug]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('public/portfolio-project')
+                ->has('similarItems', 0)
+            );
+    }
+
+    public function test_portfolio_show_lists_other_real_listings_but_not_demo_entries(): void
+    {
+        $current = PortfolioItem::factory()->create([
+            'slug' => 'cimb-7',
+            'locale' => 'ro',
+            'is_published' => true,
+            'listing_category' => 'apartment_sale',
+        ]);
+
+        $other = PortfolioItem::factory()->create([
+            'slug' => 'cimb-8',
+            'locale' => 'ro',
+            'is_published' => true,
+            'listing_category' => 'apartment_sale',
+        ]);
+
+        PortfolioItem::factory()->create([
+            'title' => 'Apartament de închiriat — exemplu Cluj-Napoca',
+            'locale' => 'ro',
+            'is_published' => true,
+            'listing_category' => 'apartment_rent',
+            'price' => 650,
+        ]);
+
+        $this->get(route('portfolio.show', ['slug' => $current->fresh()->slug]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('public/portfolio-project')
+                ->has('similarItems', 1)
+                ->where('similarItems.0.id', $other->id)
+            );
+    }
+
     public function test_portfolio_show_includes_external_portal_urls_on_inertia_props(): void
     {
         $item = PortfolioItem::factory()->create([
