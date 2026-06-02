@@ -1,14 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
-import {
-    BedDouble,
-    ChevronLeft,
-    ChevronRight,
-    ImageIcon,
-    Mail,
-    Phone,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, ImageIcon, Mail, Phone } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Header } from '@/components/public/Header';
+import { ListingDescriptionContent } from '@/components/public/ListingDescriptionContent';
+import { PropertySpecsDisplay } from '@/components/public/PropertySpecsDisplay';
 import { Footer } from '@/components/public/Footer';
 import { PublicSeoHead } from '@/components/public/PublicSeoHead';
 import { Button } from '@/components/ui/button';
@@ -384,23 +379,6 @@ export default function PortfolioProjectPage({
         }
     }, [price, appLocale]);
 
-    const specsRows = characteristicRows;
-
-    const iconForSpec = (spec: { key: string; label: string }) => {
-        const haystack = `${spec.key} ${spec.label}`.toLowerCase();
-
-        if (
-            haystack.includes('cam') ||
-            haystack.includes('room') ||
-            haystack.includes('camera')
-        ) {
-            return BedDouble;
-        }
-
-        // Generic fallback (we don't rely on specific icons per property key).
-        return ImageIcon;
-    };
-
     const galleryList = gallery ?? [];
 
     const photoCountForBadge = (image_path ? 1 : 0) + galleryList.length;
@@ -611,49 +589,15 @@ export default function PortfolioProjectPage({
                                 </section>
                             ) : null}
 
-                            {specsRows.length > 0 ? (
-                                <section
-                                    className="space-y-3"
-                                    aria-labelledby="listing-specs-heading"
-                                >
-                                    <h2
-                                        id="listing-specs-heading"
-                                        className="text-base font-semibold sm:text-lg"
-                                    >
-                                        {tPortfolio.specs_heading ??
-                                            'Characteristics'}
-                                    </h2>
-                                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                                        {specsRows.map((row, index) => {
-                                            const Icon = iconForSpec({
-                                                key: row.key,
-                                                label: row.label,
-                                            });
-
-                                            return (
-                                                <div
-                                                    key={`${row.key}-${index}`}
-                                                    className="flex items-center gap-3 rounded-xl border border-border/70 bg-card/70 px-3 py-3 shadow-sm ring-1 ring-black/[0.02] dark:bg-card/40 dark:ring-white/[0.04]"
-                                                >
-                                                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted/25 ring-1 ring-border/60">
-                                                        <Icon
-                                                            className="size-5 text-muted-foreground"
-                                                            strokeWidth={1.5}
-                                                        />
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <p className="truncate text-[11px] font-medium tracking-[0.08em] text-muted-foreground uppercase">
-                                                            {row.label}
-                                                        </p>
-                                                        <p className="truncate text-sm font-semibold text-foreground">
-                                                            {row.value}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </section>
+                            {characteristicRows.length > 0 ? (
+                                <PropertySpecsDisplay
+                                    rows={characteristicRows}
+                                    heading={
+                                        tPortfolio.specs_heading ??
+                                        'Characteristics'
+                                    }
+                                    showDetails={false}
+                                />
                             ) : null}
 
                             {description ? (
@@ -662,13 +606,29 @@ export default function PortfolioProjectPage({
                                         {tPortfolio.description_heading ??
                                             'Description'}
                                     </h2>
-                                    <div
-                                        className="prose prose-sm dark:prose-invert sm:prose-base prose-p:leading-relaxed max-w-none text-muted-foreground [&_iframe]:aspect-video [&_iframe]:w-full [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-md [&_pre]:break-words [&_pre]:whitespace-pre-wrap [&_table]:block [&_table]:w-full [&_table]:overflow-x-auto [&_video]:max-w-full"
-                                        dangerouslySetInnerHTML={{
-                                            __html: description,
-                                        }}
+                                    <ListingDescriptionContent
+                                        content={description}
                                     />
                                 </section>
+                            ) : null}
+
+                            {characteristicRows.length > 0 ? (
+                                <PropertySpecsDisplay
+                                    rows={characteristicRows}
+                                    heading={
+                                        tPortfolio.specs_details_heading ??
+                                        'Details'
+                                    }
+                                    showHighlights={false}
+                                    showMoreLabel={
+                                        tPortfolio.specs_show_more ??
+                                        '+:count more details'
+                                    }
+                                    showLessLabel={
+                                        tPortfolio.specs_show_less ??
+                                        'Show less'
+                                    }
+                                />
                             ) : null}
                         </div>
 

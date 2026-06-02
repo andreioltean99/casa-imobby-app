@@ -2,7 +2,6 @@ import { Head } from '@inertiajs/react';
 import { useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { dashboard } from '@/routes';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import {
     EyeOff,
@@ -30,7 +29,7 @@ export default function Dashboard({
         () => [
             {
                 title: t('breadcrumb.dashboard'),
-                href: dashboard(),
+                href: '/dashboard',
             },
         ],
         [t],

@@ -27,7 +27,6 @@ import {
 } from '@/components/ui/sidebar';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import type { NavItem } from '@/types';
-import { dashboard } from '@/routes';
 
 export function AppSidebar() {
     const t = useAdminT();
@@ -43,7 +42,7 @@ export function AppSidebar() {
         () => [
             {
                 title: t('nav.dashboard'),
-                href: dashboard(),
+                href: '/dashboard',
                 icon: LayoutGrid,
             },
             {
@@ -145,7 +144,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href="/dashboard" prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

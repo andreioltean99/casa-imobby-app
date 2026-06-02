@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
-import { dashboard } from '@/routes';
 
 type UserRow = {
     id: number;
@@ -26,7 +25,7 @@ export default function DashboardUsers({ users }: Props) {
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
-            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            { title: t('breadcrumb.dashboard'), href: '/dashboard' },
             { title: t('breadcrumb.users'), href: '/dashboard/users' },
         ],
         [t],

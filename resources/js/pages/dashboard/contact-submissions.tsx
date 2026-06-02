@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
-import { dashboard } from '@/routes';
 
 type SubmissionRow = {
     id: number;
@@ -36,7 +35,7 @@ export default function DashboardContactSubmissions({ submissions }: Props) {
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
-            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            { title: t('breadcrumb.dashboard'), href: '/dashboard' },
             { title: t('breadcrumb.contact_messages'), href: '/dashboard/contact-messages' },
         ],
         [t],

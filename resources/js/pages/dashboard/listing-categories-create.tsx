@@ -4,7 +4,6 @@ import { AdminLocalizedNameFields } from '@/components/admin-localized-name-fiel
 import AppLayout from '@/layouts/app-layout';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
-import { dashboard } from '@/routes';
 
 const LISTING_CATEGORIES_BASE = '/dashboard/listing-categories';
 
@@ -22,7 +21,7 @@ export default function ListingCategoriesCreate() {
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
-            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            { title: t('breadcrumb.dashboard'), href: '/dashboard' },
             { title: t('breadcrumb.listing_categories'), href: LISTING_CATEGORIES_BASE },
             { title: t('breadcrumb.add_category'), href: `${LISTING_CATEGORIES_BASE}/create` },
         ],

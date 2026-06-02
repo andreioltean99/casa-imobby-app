@@ -7,7 +7,6 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
-import { dashboard } from '@/routes';
 
 const BASE = '/dashboard/property-characteristics';
 
@@ -38,7 +37,7 @@ export default function PropertyFiltersEdit({ propertyFilter }: Props) {
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
-            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            { title: t('breadcrumb.dashboard'), href: '/dashboard' },
             { title: t('breadcrumb.property_filters'), href: BASE },
             { title: label, href: `${BASE}/${propertyFilter.id}/edit` },
         ],

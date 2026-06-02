@@ -3,7 +3,6 @@ import { useMemo, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
-import { dashboard } from '@/routes';
 
 type PortfolioRow = {
     id: number;
@@ -36,7 +35,7 @@ export default function DashboardPortfolio({
 }: Props) {
     const t = useAdminT();
     const [characteristicSearch, setCharacteristicSearch] = useState('');
-    const [filtersVisible, setFiltersVisible] = useState(true);
+    const [filtersVisible, setFiltersVisible] = useState(false);
     const { props } = usePage<{
         portfolioListingAdmin?: {
             categoryLabel: string;
@@ -48,7 +47,7 @@ export default function DashboardPortfolio({
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
-            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            { title: t('breadcrumb.dashboard'), href: '/dashboard' },
             { title: t('breadcrumb.property_listings'), href: '/dashboard/portfolio' },
         ],
         [t],

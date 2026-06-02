@@ -28,6 +28,9 @@ class PropertyCharacteristicSeeder extends Seeder
             ['key' => 'nr_balcoane', 'name_ro' => 'Nr. balcoane', 'name_en' => 'Balconies'],
             ['key' => 'tip_imobil', 'name_ro' => 'Tip imobil', 'name_en' => 'Building type'],
             ['key' => 'tip_finisaj', 'name_ro' => 'Tip finisaj', 'name_en' => 'Finish type'],
+            ['key' => 'modalitate_plata', 'name_ro' => 'Modalitate de plată', 'name_en' => 'Payment method'],
+            ['key' => 'nr_bucatarii', 'name_ro' => 'Nr. bucătării', 'name_en' => 'Kitchens'],
+            ['key' => 'suprafata_teren', 'name_ro' => 'Suprafață teren', 'name_en' => 'Land area'],
         ];
 
         foreach ($rows as $index => $row) {

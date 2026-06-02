@@ -11,7 +11,6 @@ import { useAdminT } from '@/hooks/use-admin-translations';
 import { usePortfolioFormOptions } from '@/hooks/use-portfolio-form-options';
 import type { PropertyFilterOption } from '@/hooks/use-portfolio-form-options';
 import type { BreadcrumbItem } from '@/types';
-import { dashboard } from '@/routes';
 import type { ListingCategoryOption } from '@/lib/portfolioListingCategories';
 
 type GalleryImage = {
@@ -86,7 +85,7 @@ export default function DashboardPortfolioEdit({
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
-            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            { title: t('breadcrumb.dashboard'), href: '/dashboard' },
             {
                 title: t('breadcrumb.property_listings'),
                 href: '/dashboard/portfolio',
@@ -157,6 +156,10 @@ export default function DashboardPortfolioEdit({
     });
 
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [importingImobiliare, setImportingImobiliare] = useState(false);
+    const [importImobiliareMessage, setImportImobiliareMessage] = useState<
+        string | null
+    >(null);
 
     useEffect(() => {
         if (!data.image) {
@@ -167,6 +170,103 @@ export default function DashboardPortfolioEdit({
         setImagePreview(url);
         return () => URL.revokeObjectURL(url);
     }, [data.image]);
+
+    const importFromImobiliare = async () => {
+        setImportImobiliareMessage(null);
+        if (!data.external_imobiliare_url.trim()) {
+            setImportImobiliareMessage(
+                t('portfolio.form.imobiliare_import_missing_url'),
+            );
+            return;
+        }
+
+        setImportingImobiliare(true);
+        try {
+            const csrf =
+                document.querySelector<HTMLMetaElement>(
+                    'meta[name="csrf-token"]',
+                )?.content ?? '';
+            const response = await fetch(
+                '/dashboard/portfolio/import-imobiliare',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrf,
+                    },
+                    body: JSON.stringify({
+                        external_imobiliare_url:
+                            data.external_imobiliare_url.trim(),
+                    }),
+                },
+            );
+
+            const payload = (await response.json()) as
+                | {
+                      message?: string;
+                      title?: string | null;
+                      short_description?: string | null;
+                      description?: string | null;
+                      price?: string | null;
+                      zone?: string | null;
+                      listing_category?: string | null;
+                      external_imobiliare_url?: string;
+                      property_filters?: Array<{
+                          property_filter_id: number;
+                          value: string;
+                      }>;
+                  }
+                | undefined;
+
+            if (!response.ok) {
+                setImportImobiliareMessage(
+                    payload?.message ??
+                        t('portfolio.form.imobiliare_import_failed'),
+                );
+                return;
+            }
+
+            if (payload?.title) setData('title', payload.title);
+            if (payload?.short_description)
+                setData('short_description', payload.short_description);
+            if (payload?.description)
+                setData('description', payload.description);
+            if (payload?.price) setData('price', payload.price);
+            if (payload?.zone) setData('zone', payload.zone);
+            if (payload?.listing_category)
+                setData('listing_category', payload.listing_category);
+            if (payload?.external_imobiliare_url) {
+                setData(
+                    'external_imobiliare_url',
+                    payload.external_imobiliare_url,
+                );
+            }
+
+            if (
+                payload?.property_filters &&
+                payload.property_filters.length > 0
+            ) {
+                setPropertyFilterRows(
+                    payload.property_filters.map((row) => ({
+                        property_filter_id: String(row.property_filter_id),
+                        value: row.value,
+                    })),
+                );
+            }
+
+            setImportImobiliareMessage(
+                t('portfolio.form.imobiliare_import_success'),
+            );
+        } catch {
+            setImportImobiliareMessage(
+                t('portfolio.form.imobiliare_import_failed'),
+            );
+        } finally {
+            setImportingImobiliare(false);
+        }
+    };
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -397,6 +497,32 @@ export default function DashboardPortfolioEdit({
                                     placeholder="https://www.imobiliare.ro/…"
                                     className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                 />
+                                <div className="mt-2 flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={importFromImobiliare}
+                                        disabled={importingImobiliare}
+                                        className="inline-flex items-center rounded-md border border-sidebar-border bg-background px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted disabled:opacity-60"
+                                    >
+                                        {importingImobiliare
+                                            ? t(
+                                                  'portfolio.form.imobiliare_import_loading',
+                                              )
+                                            : t(
+                                                  'portfolio.form.imobiliare_import_button',
+                                              )}
+                                    </button>
+                                    <span className="text-[11px] text-muted-foreground">
+                                        {t(
+                                            'portfolio.form.imobiliare_import_hint',
+                                        )}
+                                    </span>
+                                </div>
+                                {importImobiliareMessage ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        {importImobiliareMessage}
+                                    </p>
+                                ) : null}
                                 {errors.external_imobiliare_url && (
                                     <p className="text-xs text-red-500">
                                         {errors.external_imobiliare_url}

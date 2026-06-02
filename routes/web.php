@@ -1,28 +1,29 @@
 <?php
 
+use App\Http\Controllers\ContactSubmissionController;
 use App\Http\Controllers\Dashboard\AboutDashboardController;
 use App\Http\Controllers\Dashboard\AboutItemDashboardController;
 use App\Http\Controllers\Dashboard\ContactSettingsDashboardController;
+use App\Http\Controllers\Dashboard\ContactSubmissionDashboardController;
 use App\Http\Controllers\Dashboard\LandingHeroDashboardController;
+use App\Http\Controllers\Dashboard\LeadSubmissionDashboardController;
 use App\Http\Controllers\Dashboard\LegalPageDashboardController;
 use App\Http\Controllers\Dashboard\MediaUploadController;
 use App\Http\Controllers\Dashboard\PortfolioDashboardController;
 use App\Http\Controllers\Dashboard\PortfolioListingCategoryDashboardController;
-use App\Http\Controllers\Dashboard\PropertyFilterDashboardController;
 use App\Http\Controllers\Dashboard\PrincipleDashboardController;
+use App\Http\Controllers\Dashboard\PropertyFilterDashboardController;
 use App\Http\Controllers\Dashboard\TestimonialDashboardController;
 use App\Http\Controllers\Dashboard\UsersDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\ContactSubmissionController;
-use App\Http\Controllers\Dashboard\ContactSubmissionDashboardController;
-use App\Http\Controllers\Dashboard\LeadSubmissionDashboardController;
 use App\Http\Controllers\LeadOfferSubmissionController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\PublicContactController;
 use App\Http\Controllers\SitemapController;
+use App\Models\PropertyFilter;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -59,7 +60,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::redirect('dashboard/property-filters', 'dashboard/property-characteristics');
     Route::redirect('dashboard/property-filters/create', 'dashboard/property-characteristics/create');
-    Route::get('dashboard/property-filters/{propertyFilter}/edit', function (\App\Models\PropertyFilter $propertyFilter) {
+    Route::get('dashboard/property-filters/{propertyFilter}/edit', function (PropertyFilter $propertyFilter) {
         return redirect()->to("/dashboard/property-characteristics/{$propertyFilter->id}/edit");
     });
 
@@ -82,6 +83,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('dashboard.portfolio.create');
     Route::get('dashboard/portfolio/form-options', [PortfolioDashboardController::class, 'formOptions'])
         ->name('dashboard.portfolio.form-options');
+    Route::post('dashboard/portfolio/import-imobiliare', [PortfolioDashboardController::class, 'importFromImobiliare'])
+        ->name('dashboard.portfolio.import-imobiliare');
     Route::post('dashboard/portfolio', [PortfolioDashboardController::class, 'store'])
         ->name('dashboard.portfolio.store');
     Route::get('dashboard/portfolio/{portfolioItem}/edit', [PortfolioDashboardController::class, 'edit'])

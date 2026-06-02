@@ -4,7 +4,6 @@ import { AdminLocalizedNameFields } from '@/components/admin-localized-name-fiel
 import AppLayout from '@/layouts/app-layout';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
-import { dashboard } from '@/routes';
 
 const BASE = '/dashboard/property-characteristics';
 
@@ -20,7 +19,7 @@ export default function PropertyFiltersCreate() {
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
-            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            { title: t('breadcrumb.dashboard'), href: '/dashboard' },
             { title: t('breadcrumb.property_filters'), href: BASE },
             { title: t('breadcrumb.add_property_filter'), href: `${BASE}/create` },
         ],

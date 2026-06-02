@@ -1,5 +1,4 @@
 import { Link, usePage } from '@inertiajs/react';
-import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
 export default function AuthSplitLayout({
@@ -21,7 +20,7 @@ export default function AuthSplitLayout({
                 />
                 <div className="absolute inset-0 bg-zinc-900/75" />
                 <Link
-                    href={home()}
+                    href="/"
                     className="relative z-20 flex items-center gap-2 text-lg font-medium"
                 >
                     <img
@@ -34,7 +33,7 @@ export default function AuthSplitLayout({
             <div className="w-full lg:p-8">
                 <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
                     <Link
-                        href={home()}
+                        href="/"
                         className="relative z-20 flex items-center justify-center lg:hidden"
                     >
                         <img

@@ -4,7 +4,6 @@ import AppLayout from '@/layouts/app-layout';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
 import { TinyTextEditor } from '@/components/tiny-text-editor';
-import { dashboard } from '@/routes';
 
 type Props = {
     page: {
@@ -19,7 +18,7 @@ export default function DashboardLegalTerms({ page }: Props) {
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
-            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            { title: t('breadcrumb.dashboard'), href: '/dashboard' },
             { title: t('breadcrumb.legal'), href: '/dashboard/legal/terms' },
             { title: t('breadcrumb.terms'), href: '/dashboard/legal/terms' },
         ],

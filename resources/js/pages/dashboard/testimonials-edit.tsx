@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { useAdminT } from '@/hooks/use-admin-translations';
 import type { BreadcrumbItem } from '@/types';
-import { dashboard } from '@/routes';
 
 type Testimonial = {
     id: number;
@@ -23,7 +22,7 @@ export default function DashboardTestimonialEdit({ testimonial }: Props) {
     const t = useAdminT();
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
-            { title: t('breadcrumb.dashboard'), href: dashboard() },
+            { title: t('breadcrumb.dashboard'), href: '/dashboard' },
             {
                 title: t('breadcrumb.testimonials'),
                 href: '/dashboard/testimonials',
