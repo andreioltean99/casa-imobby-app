@@ -61,6 +61,7 @@ class HandleInertiaRequests extends Middleware
                 'pinnedHomeOrderLabel' => __('website.portfolio.pinned_home_order_label'),
                 'categoryTitles' => PortfolioListingCategory::titlesForLocale(app()->getLocale()),
             ],
+            'listingCategoryOptions' => PortfolioListingCategory::activeOptionsForForm(app()->getLocale()),
             'admin' => Lang::get('admin'),
             'flash' => [
                 'contact_submitted' => fn () => $request->session()->get('contact_submitted'),

@@ -57,6 +57,26 @@ class PortfolioListingCategory extends Model
             ->all();
     }
 
+    /**
+     * @return list<array{value: string, label: string, is_active: bool}>
+     */
+    public static function activeOptionsForForm(?string $locale = null): array
+    {
+        $locale ??= app()->getLocale();
+
+        return static::query()
+            ->active()
+            ->ordered()
+            ->get()
+            ->map(fn (self $c) => [
+                'value' => $c->key,
+                'label' => $c->nameForLocale($locale),
+                'is_active' => true,
+            ])
+            ->values()
+            ->all();
+    }
+
     public function nameForLocale(?string $locale = null): string
     {
         $locale ??= app()->getLocale();

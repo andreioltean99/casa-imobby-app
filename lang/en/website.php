@@ -75,6 +75,8 @@ return [
         'price_drop_mail_cta' => 'View listing',
         'price_drop_mail_footer' => 'This message was sent automatically by :name.',
         'pdf_price_label' => 'Price',
+        'pdf_summary_heading' => 'Overview',
+        'pdf_contact_heading' => 'Contact',
         'listing_category_label' => 'Listing category',
         'listing_category_placeholder' => '— Not set (hidden from home category blocks) —',
         'pinned_home_label' => 'Pin to homepage (within category)',

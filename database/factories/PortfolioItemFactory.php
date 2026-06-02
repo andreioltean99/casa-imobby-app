@@ -21,7 +21,7 @@ class PortfolioItemFactory extends Factory
             'short_description' => fake()->optional()->sentence(),
             'description' => fake()->optional()->paragraph(),
             'image_path' => null,
-            'date' => (string) fake()->year(),
+            'date' => now()->locale('ro')->translatedFormat('j F Y'),
             'duration' => null,
             'price' => null,
             'is_published' => true,

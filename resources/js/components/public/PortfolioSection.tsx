@@ -18,9 +18,39 @@ export type PortfolioItemData = {
 };
 
 const defaultProjects: PortfolioItemData[] = [
-    { id: 0, title: 'Heat recovery system – Enerc', short_description: 'Short description summarizing the client needs, the implemented solution and impact on efficiency.', description: 'Short description summarizing the client needs, the implemented solution and impact on efficiency.', image_path: null, date: '31 August 2024', duration: '6 months' },
-    { id: 1, title: 'Steam distribution – Chemi', short_description: 'Short description summarizing the client needs, the implemented solution and impact on efficiency.', description: 'Short description summarizing the client needs, the implemented solution and impact on efficiency.', image_path: null, date: '31 August 2024', duration: '6 months' },
-    { id: 2, title: 'Thermal systems modernization – Helios Group', short_description: 'Short description summarizing the client needs, the implemented solution and impact on efficiency.', description: 'Short description summarizing the client needs, the implemented solution and impact on efficiency.', image_path: null, date: '31 August 2024', duration: '6 months' },
+    {
+        id: 0,
+        title: 'Heat recovery system – Enerc',
+        short_description:
+            'Short description summarizing the client needs, the implemented solution and impact on efficiency.',
+        description:
+            'Short description summarizing the client needs, the implemented solution and impact on efficiency.',
+        image_path: null,
+        date: '31 August 2024',
+        duration: '6 months',
+    },
+    {
+        id: 1,
+        title: 'Steam distribution – Chemi',
+        short_description:
+            'Short description summarizing the client needs, the implemented solution and impact on efficiency.',
+        description:
+            'Short description summarizing the client needs, the implemented solution and impact on efficiency.',
+        image_path: null,
+        date: '31 August 2024',
+        duration: '6 months',
+    },
+    {
+        id: 2,
+        title: 'Thermal systems modernization – Helios Group',
+        short_description:
+            'Short description summarizing the client needs, the implemented solution and impact on efficiency.',
+        description:
+            'Short description summarizing the client needs, the implemented solution and impact on efficiency.',
+        image_path: null,
+        date: '31 August 2024',
+        duration: '6 months',
+    },
 ];
 
 type Props = {
@@ -53,7 +83,10 @@ export function PortfolioSection({
             .replace(/\bday\b/gi, tUnits.day ?? 'day');
     };
     const stripHtml = (value: string) =>
-        value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        value
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
 
     const getDescriptionPreview = (value: string | null) => {
         if (!value) return '';
@@ -68,13 +101,18 @@ export function PortfolioSection({
         if (Number.isNaN(num)) return null;
         const loc = pageLocale === 'en' ? 'en-RO' : 'ro-RO';
         try {
-            return new Intl.NumberFormat(loc, { style: 'currency', currency: 'EUR' }).format(num);
+            return new Intl.NumberFormat(loc, {
+                style: 'currency',
+                currency: 'EUR',
+            }).format(num);
         } catch {
             return `${num} €`;
         }
     };
     const items =
-        portfolioItems && portfolioItems.length > 0 ? portfolioItems : defaultProjects;
+        portfolioItems && portfolioItems.length > 0
+            ? portfolioItems
+            : defaultProjects;
     const sectionRef = useRef<HTMLElement | null>(null);
     const lastScrollYRef = useRef(0);
     const hasAnimatedRef = useRef(false);
@@ -85,11 +123,13 @@ export function PortfolioSection({
             return;
         }
 
-        lastScrollYRef.current = typeof window !== 'undefined' ? window.scrollY : 0;
+        lastScrollYRef.current =
+            typeof window !== 'undefined' ? window.scrollY : 0;
         const observer = new IntersectionObserver(
             (entries) => {
                 const entry = entries[0];
-                const currentY = typeof window !== 'undefined' ? window.scrollY : 0;
+                const currentY =
+                    typeof window !== 'undefined' ? window.scrollY : 0;
                 const scrollingDown = currentY >= lastScrollYRef.current;
                 lastScrollYRef.current = currentY;
 
@@ -142,7 +182,7 @@ export function PortfolioSection({
                     const cardContent = (
                         <Card
                             key={project.id}
-                            className={`group flex h-full cursor-pointer flex-col justify-between border-border/70 bg-background/80 transition hover:-translate-y-0.5 hover:border-brand-accent/50 hover:shadow-md dark:bg-neutral-950/70 ${isVisible ? 'animate-mobile-card-pop' : ''}`}
+                            className={`group flex cursor-pointer flex-col border-border/70 bg-background/80 py-0 transition hover:-translate-y-0.5 hover:border-brand-accent/50 hover:shadow-md dark:bg-neutral-950/70 ${isVisible ? 'animate-mobile-card-pop' : ''}`}
                             style={
                                 isVisible
                                     ? ({
@@ -151,9 +191,9 @@ export function PortfolioSection({
                                     : undefined
                             }
                         >
-                            <CardContent className="space-y-3 p-4">
+                            <CardContent className="space-y-2 p-3">
                                 {project.image_path ? (
-                                    <div className="h-28 overflow-hidden rounded-lg ring-1 ring-border/60">
+                                    <div className="aspect-video overflow-hidden rounded-lg ring-1 ring-border/60">
                                         <img
                                             src={`/storage/${project.image_path}`}
                                             alt={project.title}
@@ -161,36 +201,52 @@ export function PortfolioSection({
                                         />
                                     </div>
                                 ) : (
-                                    <div className="h-28 rounded-lg bg-gradient-to-br from-neutral-100 via-neutral-50 to-brand-accent-soft ring-1 ring-border/60 dark:from-neutral-900 dark:via-neutral-900 dark:to-brand-accent/15 dark:ring-border/40" />
+                                    <div className="aspect-video rounded-lg bg-gradient-to-br from-neutral-100 via-neutral-50 to-brand-accent-soft ring-1 ring-border/60 dark:from-neutral-900 dark:via-neutral-900 dark:to-brand-accent/15 dark:ring-border/40" />
                                 )}
                                 <div className="space-y-1">
-                                    <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-                                        {(tPortfolio.list_item_prefix ?? 'Unit') + ' #' + (index + 1)}
+                                    <p className="text-[11px] font-medium tracking-[0.2em] text-muted-foreground uppercase">
+                                        {(tPortfolio.list_item_prefix ??
+                                            'Unit') +
+                                            ' #' +
+                                            (index + 1)}
                                     </p>
-                                    <h3 className="text-sm font-semibold">{project.title}</h3>
+                                    <h3 className="text-sm font-semibold">
+                                        {project.title}
+                                    </h3>
                                     {formatCardPrice(project.price) ? (
                                         <p className="text-sm font-semibold text-foreground">
                                             {formatCardPrice(project.price)}
                                         </p>
                                     ) : null}
-                                    {(project.short_description || project.description) && (
+                                    {(project.short_description ||
+                                        project.description) && (
                                         <p className="text-xs text-muted-foreground">
-                                            {getDescriptionPreview(project.short_description ?? project.description)}
+                                            {getDescriptionPreview(
+                                                project.short_description ??
+                                                    project.description,
+                                            )}
                                         </p>
                                     )}
                                 </div>
                                 <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                                    {project.date && <span>{project.date}</span>}
+                                    {project.date && (
+                                        <span>{project.date}</span>
+                                    )}
                                     {project.duration && (
                                         <span>
-                                            {(tPortfolio.duration_label ?? 'Duration:') + ' '}
+                                            {(tPortfolio.duration_label ??
+                                                'Duration:') + ' '}
                                             {localizeDuration(project.duration)}
                                         </span>
                                     )}
                                 </div>
-                                {((project.slug && project.slug.trim().length > 0) || project.id) && (
+                                {((project.slug &&
+                                    project.slug.trim().length > 0) ||
+                                    project.id) && (
                                     <div className="pt-1 text-xs font-medium text-brand transition-colors group-hover:text-brand/90 dark:text-sky-400 dark:group-hover:text-sky-300">
-                                        {tPortfolio.view_project ?? 'Vezi detalii'} &rarr;
+                                        {tPortfolio.view_project ??
+                                            'Vezi detalii'}{' '}
+                                        &rarr;
                                     </div>
                                 )}
                             </CardContent>
@@ -200,7 +256,11 @@ export function PortfolioSection({
                     const projectHref = listingPublicHref(project);
 
                     return (
-                        <Link key={project.id} href={projectHref} className="block h-full cursor-pointer">
+                        <Link
+                            key={project.id}
+                            href={projectHref}
+                            className="block cursor-pointer"
+                        >
                             {cardContent}
                         </Link>
                     );
@@ -209,4 +269,3 @@ export function PortfolioSection({
         </section>
     );
 }
-

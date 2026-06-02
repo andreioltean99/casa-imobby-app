@@ -86,7 +86,7 @@ export function Header() {
                     </a>
                 </nav>
 
-                <div className="flex w-full items-center justify-start gap-1.5 sm:w-auto sm:justify-end sm:gap-3">
+                <div className="flex w-full items-center justify-start gap-2 sm:w-auto sm:justify-end sm:gap-3">
                     <button
                         type="button"
                         onClick={() =>
@@ -94,7 +94,7 @@ export function Header() {
                                 resolvedAppearance === 'dark' ? 'light' : 'dark',
                             )
                         }
-                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-background/80 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:h-9 sm:w-9"
+                        className="inline-flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-full border border-border bg-background/80 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:h-9 sm:w-9"
                         aria-label={
                             resolvedAppearance === 'dark'
                                 ? 'Switch to light mode'
@@ -107,13 +107,13 @@ export function Header() {
                         }
                     >
                         {resolvedAppearance === 'dark' ? (
-                            <Sun className="h-4 w-4" />
+                            <Sun className="h-5 w-5 sm:h-4 sm:w-4" />
                         ) : (
-                            <Moon className="h-4 w-4" />
+                            <Moon className="h-5 w-5 sm:h-4 sm:w-4" />
                         )}
                     </button>
 
-                    <div className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-background/80 px-1 py-0.5 text-[10px] font-medium text-muted-foreground sm:ml-0 sm:text-[11px]">
+                    <div className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-background/80 px-1 py-1 text-xs font-medium text-muted-foreground sm:py-0.5 sm:text-[11px]">
                         {locales.map((code) => {
                             const isActive = code === current;
                             return (
@@ -121,7 +121,7 @@ export function Header() {
                                     key={code}
                                     href={`/lang/${code}`}
                                     className={[
-                                        'inline-flex h-5 items-center justify-center rounded-full px-1.5 transition-colors sm:h-6 sm:px-2',
+                                        'inline-flex min-h-9 min-w-9 touch-manipulation items-center justify-center rounded-full px-2.5 transition-colors sm:min-h-0 sm:min-w-0 sm:h-6 sm:px-2',
                                         isActive
                                             ? 'bg-brand text-white'
                                             : 'hover:bg-muted hover:text-foreground',
@@ -134,14 +134,23 @@ export function Header() {
                     </div>
                 </div>
 
-                <nav className="flex items-center gap-1 overflow-x-auto pb-0 text-[10px] font-medium text-muted-foreground sm:hidden">
-                    <a href={sectionHref('properties')} className="whitespace-nowrap rounded-full border border-border/70 bg-background px-2 py-1 leading-none hover:text-brand">
+                <nav className="flex items-stretch gap-2 overflow-x-auto pb-0.5 text-xs font-medium text-muted-foreground sm:hidden">
+                    <a
+                        href={sectionHref('properties')}
+                        className="inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center whitespace-nowrap rounded-full border border-border/70 bg-background px-3 py-2.5 leading-snug hover:text-brand"
+                    >
                         {translations?.nav?.portfolio ?? 'Properties'}
                     </a>
-                    <a href={sectionHref('about')} className="whitespace-nowrap rounded-full border border-border/70 bg-background px-2 py-1 leading-none hover:text-brand">
+                    <a
+                        href={sectionHref('about')}
+                        className="inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center whitespace-nowrap rounded-full border border-border/70 bg-background px-3 py-2.5 leading-snug hover:text-brand"
+                    >
                         {translations?.nav?.about ?? 'About us'}
                     </a>
-                    <a href={sectionHref('contact')} className="whitespace-nowrap rounded-full border border-border/70 bg-background px-2 py-1 leading-none hover:text-brand">
+                    <a
+                        href={sectionHref('contact')}
+                        className="inline-flex min-h-11 flex-1 touch-manipulation items-center justify-center whitespace-nowrap rounded-full border border-border/70 bg-background px-3 py-2.5 leading-snug hover:text-brand"
+                    >
                         {translations?.nav?.contact ?? 'Contact'}
                     </a>
                 </nav>

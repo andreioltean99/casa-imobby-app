@@ -1,36 +1,29 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import { ListingTypeSelector } from '@/components/dashboard/ListingTypeSelector';
+import {
+    PropertyCharacteristicsFields,
+    type PropertyFilterRow,
+} from '@/components/dashboard/PropertyCharacteristicsFields';
 import { TinyTextEditor } from '@/components/tiny-text-editor';
 import { useAdminT } from '@/hooks/use-admin-translations';
+import { usePortfolioFormOptions } from '@/hooks/use-portfolio-form-options';
 import type { BreadcrumbItem } from '@/types';
 import { dashboard } from '@/routes';
 import type { ListingCategoryOption } from '@/lib/portfolioListingCategories';
-
-type SpecRow = { label: string; value: string };
-type PropertyFilterRow = { property_filter_id: string; value: string };
-type PropertyFilterOption = { id: number; key: string; label: string; is_searchable: boolean; is_active: boolean };
+import type { PropertyFilterOption } from '@/hooks/use-portfolio-form-options';
 
 type Props = {
     listingCategoryOptions?: ListingCategoryOption[];
     propertyFilterOptions?: PropertyFilterOption[];
 };
 
-function listingCategoryOptionsFromTitles(
-    titles: Record<string, string> | undefined,
-): ListingCategoryOption[] {
-    if (!titles) {
-        return [];
-    }
-    return Object.entries(titles).map(([value, label]) => ({ value, label }));
-}
-
 export default function DashboardPortfolioCreate({
     listingCategoryOptions: listingCategoryOptionsProp = [],
-    propertyFilterOptions = [],
+    propertyFilterOptions: propertyFilterOptionsProp = [],
 }: Props) {
     const t = useAdminT();
-    const [specRows, setSpecRows] = useState<SpecRow[]>([{ label: '', value: '' }]);
     const [propertyFilterRows, setPropertyFilterRows] = useState<PropertyFilterRow[]>([
         { property_filter_id: '', value: '' },
     ]);
@@ -39,7 +32,6 @@ export default function DashboardPortfolioCreate({
         title: string;
         short_description: string;
         description: string;
-        date: string;
         price: string;
         is_published: boolean;
         external_storia_url: string;
@@ -55,14 +47,13 @@ export default function DashboardPortfolioCreate({
         title: '',
         short_description: '',
         description: '',
-        date: '',
         price: '',
         is_published: true,
         sort_order: '',
         external_storia_url: '',
         external_imobiliare_url: '',
         external_olx_url: '',
-        listing_category: '',
+        listing_category: 'apartment_sale',
         zone: '',
         pinned_home: false,
         pinned_home_order: '',
@@ -99,14 +90,10 @@ export default function DashboardPortfolioCreate({
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        const specsPayload = specRows
-            .map((r) => ({ label: r.label.trim(), value: r.value.trim() }))
-            .filter((r) => r.label || r.value);
         post('/dashboard/portfolio', {
             forceFormData: true,
             transform: (form) => ({
                 ...form,
-                listing_specs_json: JSON.stringify(specsPayload),
                 property_filters_json: JSON.stringify(
                     propertyFilterRows
                         .map((row) => ({ property_filter_id: Number(row.property_filter_id), value: row.value.trim() }))
@@ -118,22 +105,29 @@ export default function DashboardPortfolioCreate({
 
     const { props } = usePage<{
         listingCategoryOptions?: ListingCategoryOption[];
+        propertyFilterOptions?: PropertyFilterOption[];
         portfolioListingAdmin?: {
-            categoryLabel: string;
-            categoryPlaceholder: string;
             pinnedHomeLabel: string;
             pinnedHomeOrderLabel: string;
-            categoryTitles: Record<string, string>;
         };
     }>();
     const listingAdmin = props.portfolioListingAdmin;
-    const fromInertiaPage = props.listingCategoryOptions ?? [];
-    const listingCategoryOptions =
-        listingCategoryOptionsProp.length > 0
-            ? listingCategoryOptionsProp
-            : fromInertiaPage.length > 0
-              ? fromInertiaPage
-              : listingCategoryOptionsFromTitles(listingAdmin?.categoryTitles);
+    const {
+        propertyFilterOptions,
+        listingCategoryOptions,
+        optionsLoading,
+        optionsError,
+        refreshOnDropdownFocus,
+    } = usePortfolioFormOptions({
+        propertyFilterOptions:
+            propertyFilterOptionsProp.length > 0
+                ? propertyFilterOptionsProp
+                : props.propertyFilterOptions,
+        listingCategoryOptions:
+            listingCategoryOptionsProp.length > 0
+                ? listingCategoryOptionsProp
+                : props.listingCategoryOptions,
+    });
 
     const breadcrumbs: BreadcrumbItem[] = useMemo(
         () => [
@@ -181,6 +175,14 @@ export default function DashboardPortfolioCreate({
                                 <p className="text-xs text-red-500">{errors.title}</p>
                             )}
                         </div>
+                        <ListingTypeSelector
+                            value={data.listing_category}
+                            onChange={(key) => setData('listing_category', key)}
+                            categoryOptions={listingCategoryOptions}
+                            error={errors.listing_category}
+                            optionsLoading={optionsLoading}
+                            onSelectFocus={refreshOnDropdownFocus}
+                        />
                         <div className="space-y-1">
                             <label className="text-xs font-medium" htmlFor="short_description">
                                 {t('portfolio.form.short_description')}
@@ -210,86 +212,14 @@ export default function DashboardPortfolioCreate({
                                 <p className="text-xs text-red-500">{errors.description}</p>
                             )}
                         </div>
-                        <div className="space-y-2 rounded-md border border-sidebar-border/70 bg-muted/20 p-3">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                                <label className="text-xs font-medium">{t('portfolio.form.listing_specs_heading')}</label>
-                                <button
-                                    type="button"
-                                    className="text-xs font-medium text-primary hover:underline"
-                                    onClick={() => setSpecRows((rows) => [...rows, { label: '', value: '' }])}
-                                >
-                                    {t('portfolio.form.add_row')}
-                                </button>
-                            </div>
-                            <p className="text-[11px] text-muted-foreground">
-                                {t('portfolio.form.listing_specs_hint')}
-                            </p>
-                            <div className="space-y-2">
-                                {specRows.map((row, index) => (
-                                    <div key={index} className="flex flex-wrap items-start gap-2">
-                                        <input
-                                            type="text"
-                                            value={row.label}
-                                            onChange={(e) =>
-                                                setSpecRows((rows) =>
-                                                    rows.map((r, i) =>
-                                                        i === index ? { ...r, label: e.target.value } : r,
-                                                    ),
-                                                )
-                                            }
-                                            placeholder={t('portfolio.form.placeholder_label')}
-                                            className="h-9 min-w-[8rem] flex-1 rounded-md border border-sidebar-border bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                        />
-                                        <input
-                                            type="text"
-                                            value={row.value}
-                                            onChange={(e) =>
-                                                setSpecRows((rows) =>
-                                                    rows.map((r, i) =>
-                                                        i === index ? { ...r, value: e.target.value } : r,
-                                                    ),
-                                                )
-                                            }
-                                            placeholder={t('portfolio.form.placeholder_value')}
-                                            className="h-9 min-w-[8rem] flex-1 rounded-md border border-sidebar-border bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                                        />
-                                        <button
-                                            type="button"
-                                            disabled={specRows.length <= 1}
-                                            onClick={() =>
-                                                setSpecRows((rows) => rows.filter((_, i) => i !== index))
-                                            }
-                                            className="h-9 shrink-0 rounded-md border border-sidebar-border px-2 text-xs text-muted-foreground hover:bg-muted disabled:opacity-40"
-                                        >
-                                            {t('common.remove')}
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                            {errors.listing_specs_json && (
-                                <p className="text-xs text-red-500">{errors.listing_specs_json}</p>
-                            )}
-                        </div>
-                        <div className="space-y-2 rounded-md border border-sidebar-border/70 bg-muted/20 p-3">
-                            <div className="flex items-center justify-between">
-                                <label className="text-xs font-medium">Caracteristici proprietate</label>
-                                <button type="button" className="text-xs font-medium text-primary hover:underline" onClick={() => setPropertyFilterRows((rows) => [...rows, { property_filter_id: '', value: '' }])}>
-                                    {t('portfolio.form.add_row')}
-                                </button>
-                            </div>
-                            {propertyFilterRows.map((row, index) => (
-                                <div key={index} className="flex flex-wrap items-center gap-2">
-                                    <select value={row.property_filter_id} onChange={(e) => setPropertyFilterRows((rows) => rows.map((r, i) => i === index ? { ...r, property_filter_id: e.target.value } : r))} className="h-9 min-w-[12rem] flex-1 rounded-md border border-sidebar-border bg-background px-2 text-xs">
-                                        <option value="">Alege filtru</option>
-                                        {propertyFilterOptions.filter((f) => f.is_active).map((filter) => (
-                                            <option key={filter.id} value={filter.id}>{filter.label}</option>
-                                        ))}
-                                    </select>
-                                    <input value={row.value} onChange={(e) => setPropertyFilterRows((rows) => rows.map((r, i) => i === index ? { ...r, value: e.target.value } : r))} placeholder={t('portfolio.form.placeholder_value')} className="h-9 min-w-[8rem] flex-1 rounded-md border border-sidebar-border bg-background px-2 text-xs" />
-                                    <button type="button" disabled={propertyFilterRows.length <= 1} onClick={() => setPropertyFilterRows((rows) => rows.filter((_, i) => i !== index))} className="h-9 rounded-md border border-sidebar-border px-2 text-xs text-muted-foreground disabled:opacity-40">{t('common.remove')}</button>
-                                </div>
-                            ))}
-                        </div>
+                        <PropertyCharacteristicsFields
+                            rows={propertyFilterRows}
+                            onRowsChange={setPropertyFilterRows}
+                            options={propertyFilterOptions}
+                            loading={optionsLoading}
+                            loadError={optionsError}
+                            onSelectFocus={refreshOnDropdownFocus}
+                        />
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                             <div className="space-y-1">
                                 <label className="text-xs font-medium" htmlFor="external_storia_url">
@@ -343,45 +273,7 @@ export default function DashboardPortfolioCreate({
                                 )}
                             </div>
                         </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-medium" htmlFor="date">
-                                {t('portfolio.form.date')}
-                            </label>
-                            <input
-                                id="date"
-                                type="text"
-                                value={data.date}
-                                onChange={(e) => setData('date', e.target.value)}
-                                className="h-9 w-full max-w-md rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                            />
-                            {errors.date && (
-                                <p className="text-xs text-red-500">{errors.date}</p>
-                            )}
-                        </div>
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="space-y-1">
-                                <label className="text-xs font-medium" htmlFor="listing_category">
-                                    {listingAdmin?.categoryLabel ?? 'Listing category'}
-                                </label>
-                                <select
-                                    id="listing_category"
-                                    value={data.listing_category}
-                                    onChange={(e) => setData('listing_category', e.target.value)}
-                                    className="h-9 w-full rounded-md border border-sidebar-border bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                                >
-                                    <option value="">
-                                        {listingAdmin?.categoryPlaceholder ?? '—'}
-                                    </option>
-                                    {listingCategoryOptions.map((opt) => (
-                                        <option key={opt.value} value={opt.value}>
-                                            {opt.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                {errors.listing_category && (
-                                    <p className="text-xs text-red-500">{errors.listing_category}</p>
-                                )}
-                            </div>
                             <div className="space-y-1">
                                 <label className="text-xs font-medium" htmlFor="zone">
                                     Oras / zona
@@ -436,6 +328,7 @@ export default function DashboardPortfolioCreate({
                                 inputMode="decimal"
                                 min={0}
                                 step="0.01"
+                                required
                                 value={data.price}
                                 onChange={(e) => setData('price', e.target.value)}
                                 placeholder={t('portfolio.form.price_ph')}

@@ -21,7 +21,6 @@ use App\Http\Controllers\LeadOfferSubmissionController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PortfolioController;
-use App\Http\Controllers\PortfolioPriceAlertController;
 use App\Http\Controllers\PublicContactController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
@@ -35,12 +34,6 @@ Route::post('/contact-messages', ContactSubmissionController::class)
     ->name('contact-messages.store');
 Route::get('/proprietati', [PortfolioController::class, 'index'])->name('portfolio');
 Route::redirect('/portfolio', '/proprietati');
-Route::get('/portfolio/{identifier}/pdf', [PortfolioController::class, 'downloadPdf'])
-    ->middleware('throttle:30,1')
-    ->name('portfolio.pdf');
-Route::post('/portfolio/{identifier}/price-alerts', [PortfolioPriceAlertController::class, 'store'])
-    ->middleware('throttle:15,1')
-    ->name('portfolio.price-alerts.store');
 Route::get('/portfolio/{slug}', [PortfolioController::class, 'show'])->name('portfolio.show');
 Route::get('/terms', [LegalPageController::class, 'terms'])->name('terms');
 Route::get('/privacy', [LegalPageController::class, 'privacy'])->name('privacy');
@@ -87,6 +80,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('dashboard.portfolio.index');
     Route::get('dashboard/portfolio/create', [PortfolioDashboardController::class, 'create'])
         ->name('dashboard.portfolio.create');
+    Route::get('dashboard/portfolio/form-options', [PortfolioDashboardController::class, 'formOptions'])
+        ->name('dashboard.portfolio.form-options');
     Route::post('dashboard/portfolio', [PortfolioDashboardController::class, 'store'])
         ->name('dashboard.portfolio.store');
     Route::get('dashboard/portfolio/{portfolioItem}/edit', [PortfolioDashboardController::class, 'edit'])

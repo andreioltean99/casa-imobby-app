@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\PortfolioItem;
+use App\Models\PropertyFilter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -36,28 +37,35 @@ class PortfolioShowTest extends TestCase
         $response->assertNotFound();
     }
 
-    public function test_portfolio_show_includes_listing_specs_on_inertia_props(): void
+    public function test_portfolio_show_includes_property_characteristics_on_inertia_props(): void
     {
+        $filter = PropertyFilter::query()->create([
+            'key' => 'pf_testrooms001',
+            'name_ro' => 'Nr. camere',
+            'name_en' => 'Rooms',
+            'is_active' => true,
+            'is_searchable' => false,
+        ]);
+
         $item = PortfolioItem::factory()->create([
             'slug' => 'specs-unit',
             'locale' => 'ro',
             'is_published' => true,
-            'listing_specs' => [
-                ['label' => 'Nr. camere', 'value' => '2'],
-            ],
+        ]);
+
+        $item->propertyFilterValues()->create([
+            'property_filter_id' => $filter->id,
+            'value' => '2',
+            'sort_order' => 0,
         ]);
 
         $this->get(route('portfolio.show', ['slug' => $item->slug]))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('public/portfolio-project')
-                ->where('portfolioItem.listing_specs.0.label', 'Nr. camere')
-                ->where('portfolioItem.listing_specs.0.value', '2')
-                ->where('portfolioPdfUrl', route('portfolio.pdf', ['identifier' => $item->publicUrlSegment()]))
-                ->where(
-                    'portfolioPriceAlertUrl',
-                    route('portfolio.price-alerts.store', ['identifier' => $item->publicUrlSegment()]),
-                ));
+                ->where('portfolioItem.property_filter_values.0.value', '2')
+                ->where('portfolioItem.property_filter_values.0.property_filter.name_ro', 'Nr. camere')
+            );
     }
 
     public function test_portfolio_show_includes_external_portal_urls_on_inertia_props(): void

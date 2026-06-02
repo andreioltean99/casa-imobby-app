@@ -367,15 +367,11 @@ class PortfolioController extends Controller
 
         $listingUpdated = $portfolioItem->updated_at?->locale(app()->getLocale())->translatedFormat('d M Y');
 
-        $pdfIdentifier = $portfolioItem->publicUrlSegment();
-
         return Inertia::render('public/portfolio-project', [
             'portfolioItem' => $portfolioItem,
             'similarItems' => $similarItems,
             'contact' => $contact,
             'listingUpdated' => $listingUpdated,
-            'portfolioPdfUrl' => route('portfolio.pdf', ['identifier' => $pdfIdentifier]),
-            'portfolioPriceAlertUrl' => route('portfolio.price-alerts.store', ['identifier' => $pdfIdentifier]),
             'translations' => [
                 'portfolio' => trans('website.portfolio'),
                 'units' => trans('website.units'),
@@ -383,68 +379,6 @@ class PortfolioController extends Controller
             'locale' => app()->getLocale(),
             'availableLocales' => config('app.available_locales', ['ro', 'en']),
         ]);
-    }
-
-    /**
-     * Download a generated PDF brochure for the listing (same visibility rules as the public page).
-     */
-    public function downloadPdf(string $identifier)
-    {
-        $portfolioItem = $this->resolvePublishedListing($identifier);
-
-        $portfolioItem->load(['gallery' => fn ($q) => $q->orderByRaw('COALESCE(sort_order, 999999)')->orderBy('id')]);
-
-        $contact = ContactSettings::resolveForLocale($portfolioItem->locale);
-        $listingUpdated = $portfolioItem->updated_at?->locale(app()->getLocale())->translatedFormat('d M Y');
-
-        $locale = app()->getLocale();
-        $t = trans('website.portfolio');
-
-        $specs = [];
-        foreach ($portfolioItem->listing_specs ?? [] as $row) {
-            if (! is_array($row)) {
-                continue;
-            }
-            $label = isset($row['label']) ? trim((string) $row['label']) : '';
-            $value = isset($row['value']) ? trim((string) $row['value']) : '';
-            if ($label === '' && $value === '') {
-                continue;
-            }
-            $specs[] = ['label' => $label, 'value' => $value];
-        }
-
-        $descriptionHtml = (string) ($portfolioItem->description ?? '');
-        $descriptionPlain = trim(preg_replace("/\n{3,}/", "\n\n", html_entity_decode(strip_tags($descriptionHtml))));
-
-        $listingUrl = route('portfolio.show', [
-            'slug' => $portfolioItem->publicUrlSegment(),
-        ], true);
-
-        $pdf = Pdf::loadView('pdf.portfolio-listing', [
-            'item' => $portfolioItem,
-            'specs' => $specs,
-            'descriptionPlain' => $descriptionPlain,
-            'listingUpdated' => $listingUpdated,
-            'contact' => $contact->only(['phone', 'email', 'contact_person_name']),
-            'listingUrl' => $listingUrl,
-            'locale' => $locale,
-            'labels' => [
-                'ref' => $t['listing_ref'] ?? 'Ref.',
-                'updated' => $t['listing_updated'] ?? 'Updated',
-                'date' => $t['pdf_meta_date'] ?? 'Date',
-                'specs' => $t['specs_heading'] ?? 'Characteristics',
-                'description' => $t['description_heading'] ?? 'Description',
-                'source' => $t['pdf_source_line'] ?? 'Listing URL:',
-                'price' => $t['pdf_price_label'] ?? 'Price',
-            ],
-        ]);
-
-        $pdf->setPaper('a4', 'portrait');
-
-        $base = Str::slug($portfolioItem->title);
-        $filename = ($base !== '' ? $base : 'listing').'-'.$portfolioItem->id.'.pdf';
-
-        return $pdf->download($filename);
     }
 
     protected function resolvePublishedListing(string $identifier): PortfolioItem
@@ -456,5 +390,29 @@ class PortfolioController extends Controller
         }
 
         return $portfolioItem;
+    }
+
+    /**
+     * @return list<array{label: string, value: string}>
+     */
+    protected function characteristicsFromPropertyFilters(PortfolioItem $portfolioItem, string $locale): array
+    {
+        $portfolioItem->loadMissing(['propertyFilterValues.propertyFilter']);
+
+        $specs = [];
+        foreach ($portfolioItem->propertyFilterValues as $row) {
+            $filter = $row->propertyFilter;
+            $value = trim((string) $row->value);
+            if (! $filter || $value === '') {
+                continue;
+            }
+
+            $specs[] = [
+                'label' => $filter->nameForLocale($locale),
+                'value' => $value,
+            ];
+        }
+
+        return $specs;
     }
 }

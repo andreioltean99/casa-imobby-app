@@ -75,6 +75,8 @@ return [
         'price_drop_mail_cta' => 'Vezi anunțul',
         'price_drop_mail_footer' => 'Acest mesaj a fost trimis automat de :name.',
         'pdf_price_label' => 'Preț',
+        'pdf_summary_heading' => 'Rezumat',
+        'pdf_contact_heading' => 'Contact',
         'listing_category_label' => 'Categorie anunț',
         'listing_category_placeholder' => '— Nesetat (nu apare în blocurile de pe prima pagină) —',
         'pinned_home_label' => 'Evidențiază pe pagina principală (în categoria aleasă)',

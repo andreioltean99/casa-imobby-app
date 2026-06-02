@@ -118,8 +118,8 @@ export function HomePortfolioCategories({ blocks, categoryTitles: categoryTitles
                             const hasMeta = Boolean(project.date || project.duration);
                             return (
                                 <Link key={project.id} href={href} className="group block h-full">
-                                    <Card className="h-full border-border/60 bg-card/90 transition hover:border-brand/35 hover:shadow-md dark:bg-card/50">
-                                        <CardContent className="space-y-2 p-2.5 sm:p-3">
+                                    <Card className="h-full border-border/60 bg-card/90 py-0 transition hover:border-brand/35 hover:shadow-md dark:bg-card/50">
+                                        <CardContent className="space-y-1.5 p-2 sm:p-2.5">
                                             {imageBlock(project.image_path, priceLabel)}
                                             <div className="space-y-1">
                                                 <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground group-hover:text-brand">

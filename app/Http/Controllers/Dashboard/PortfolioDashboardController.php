@@ -6,11 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\PortfolioItem;
 use App\Models\PortfolioItemImage;
 use App\Models\PortfolioListingCategory;
-use App\Models\PortfolioPriceAlertSubscription;
 use App\Models\PropertyFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -83,8 +84,18 @@ class PortfolioDashboardController extends Controller
         $locale = app()->getLocale();
 
         return Inertia::render('dashboard/portfolio-create', [
-            'listingCategoryOptions' => PortfolioListingCategory::optionsForForm($locale),
+            'listingCategoryOptions' => PortfolioListingCategory::activeOptionsForForm($locale),
             'propertyFilterOptions' => PropertyFilter::optionsForForm($locale),
+        ]);
+    }
+
+    public function formOptions(): JsonResponse
+    {
+        $locale = app()->getLocale();
+
+        return response()->json([
+            'propertyFilterOptions' => PropertyFilter::optionsForForm($locale),
+            'listingCategoryOptions' => PortfolioListingCategory::activeOptionsForForm($locale),
         ]);
     }
 
@@ -124,7 +135,7 @@ class PortfolioDashboardController extends Controller
 
         return Inertia::render('dashboard/portfolio-edit', [
             'portfolioItem' => $portfolioItem,
-            'listingCategoryOptions' => PortfolioListingCategory::optionsForForm($locale),
+            'listingCategoryOptions' => PortfolioListingCategory::activeOptionsForForm($locale),
             'propertyFilterOptions' => PropertyFilter::optionsForForm($locale),
         ]);
     }
@@ -135,14 +146,10 @@ class PortfolioDashboardController extends Controller
         $data = $this->validatedData($request);
         $data['slug'] = 'pending-'.Str::lower(Str::random(16));
         $data['locale'] = $locale;
-        $data['listing_specs'] = $this->parseListingSpecsJson($request->input('listing_specs_json'));
         $data['external_listing_ref'] = $this->nullableString($data['external_listing_ref'] ?? null);
         $data['pinned_home'] = $request->boolean('pinned_home');
-        unset($data['listing_specs_json']);
-
-        if (array_key_exists('price', $data)) {
-            $data['price'] = $data['price'] === '' || $data['price'] === null ? null : $data['price'];
-        }
+        $data['listing_specs'] = null;
+        $data['date'] = $this->currentListingDisplayDate($locale);
 
         if ($request->hasFile('image')) {
             $data['image_path'] = $request->file('image')->store('portfolio', 'public');
@@ -184,14 +191,10 @@ class PortfolioDashboardController extends Controller
 
         $data = $this->validatedData($request);
         $data['locale'] = $locale;
-        $data['listing_specs'] = $this->parseListingSpecsJson($request->input('listing_specs_json'));
         $data['external_listing_ref'] = $this->nullableString($data['external_listing_ref'] ?? null);
         $data['pinned_home'] = $request->boolean('pinned_home');
-        unset($data['listing_specs_json']);
-
-        if (array_key_exists('price', $data)) {
-            $data['price'] = $data['price'] === '' || $data['price'] === null ? null : $data['price'];
-        }
+        $data['listing_specs'] = null;
+        $data['date'] = $this->currentListingDisplayDate($locale);
 
         if ($request->hasFile('image')) {
             $data['image_path'] = $request->file('image')->store('portfolio', 'public');
@@ -209,11 +212,7 @@ class PortfolioDashboardController extends Controller
         $portfolioItem->refresh();
         $portfolioItem->assignPublicSlug();
 
-        PortfolioPriceAlertSubscription::notifySubscribersIfPriceDropped(
-            $portfolioItem,
-            $oldPrice,
-            $portfolioItem->price,
-        );
+        // Removed: price-drop alert subscriptions
 
         return redirect()
             ->route('dashboard.portfolio.index')
@@ -352,59 +351,28 @@ class PortfolioDashboardController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'short_description' => ['nullable', 'string', 'max:300'],
-            'date' => ['nullable', 'string', 'max:100'],
             'duration' => ['nullable', 'string', 'max:100'],
             'is_published' => ['sometimes', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'image' => ['nullable', 'image', 'max:4096'],
             'gallery_images' => ['nullable', 'array'],
             'gallery_images.*' => ['image', 'max:4096'],
-            'listing_specs_json' => ['nullable', 'string', 'max:65535'],
             'property_filters_json' => ['nullable', 'string', 'max:65535'],
             'external_listing_ref' => ['nullable', 'string', 'max:120'],
             'external_storia_url' => ['nullable', 'string', 'max:2048', 'url'],
             'external_imobiliare_url' => ['nullable', 'string', 'max:2048', 'url'],
             'external_olx_url' => ['nullable', 'string', 'max:2048', 'url'],
             'listing_pdf' => ['nullable', 'file', 'mimes:pdf', 'max:15360'],
-            'price' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
-            'listing_category' => ['nullable', 'string', Rule::exists('portfolio_listing_categories', 'key')],
+            'price' => ['required', 'numeric', 'min:0', 'max:99999999'],
+            'listing_category' => [
+                'required',
+                'string',
+                Rule::exists('portfolio_listing_categories', 'key')->where('is_active', true),
+            ],
             'zone' => ['nullable', 'string', 'max:120'],
             'pinned_home' => ['sometimes', 'boolean'],
             'pinned_home_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ]);
-    }
-
-    /**
-     * @return list<array{label: string, value: string}>|null
-     */
-    protected function parseListingSpecsJson(?string $json): ?array
-    {
-        if ($json === null || $json === '') {
-            return null;
-        }
-
-        $decoded = json_decode($json, true);
-        if (! is_array($decoded)) {
-            return null;
-        }
-
-        $rows = [];
-        foreach ($decoded as $row) {
-            if (! is_array($row)) {
-                continue;
-            }
-            $label = isset($row['label']) ? trim((string) $row['label']) : '';
-            $value = isset($row['value']) ? trim((string) $row['value']) : '';
-            if ($label === '' && $value === '') {
-                continue;
-            }
-            $rows[] = [
-                'label' => Str::limit($label, 120, ''),
-                'value' => Str::limit($value, 500, ''),
-            ];
-        }
-
-        return $rows === [] ? null : $rows;
     }
 
     protected function nullableString(?string $value): ?string
@@ -509,5 +477,10 @@ class PortfolioDashboardController extends Controller
         }
 
         return $state;
+    }
+
+    protected function currentListingDisplayDate(string $locale): string
+    {
+        return Carbon::now()->locale($locale)->translatedFormat('j F Y');
     }
 }

@@ -24,7 +24,6 @@ class PortfolioItem extends Model
         'zone',
         'short_description',
         'description',
-        'listing_specs',
         'external_listing_ref',
         'external_storia_url',
         'external_imobiliare_url',
@@ -45,18 +44,12 @@ class PortfolioItem extends Model
         'pinned_home' => 'boolean',
         'pinned_home_order' => 'integer',
         'sort_order' => 'integer',
-        'listing_specs' => 'array',
         'price' => 'decimal:2',
     ];
 
     public function gallery(): HasMany
     {
         return $this->hasMany(PortfolioItemImage::class)->orderByRaw('COALESCE(sort_order, 999999)')->orderBy('id');
-    }
-
-    public function priceAlertSubscriptions(): HasMany
-    {
-        return $this->hasMany(PortfolioPriceAlertSubscription::class);
     }
 
     public function propertyFilterValues(): HasMany
