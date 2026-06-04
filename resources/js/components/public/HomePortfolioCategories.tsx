@@ -80,8 +80,8 @@ export function HomePortfolioCategories({ blocks, categoryTitles: categoryTitles
                 <div className="h-full w-full bg-gradient-to-br from-muted to-brand-soft/35 dark:from-neutral-800 dark:to-brand/10" />
             )}
             {priceLabel ? (
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-2 pb-1.5 pt-8">
-                    <p className="text-xs font-semibold tabular-nums tracking-tight text-white sm:text-sm">
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden bg-gradient-to-t from-black/80 via-black/35 to-transparent px-2 pb-1.5 pt-8 sm:block">
+                    <p className="text-sm font-semibold tabular-nums tracking-tight text-white">
                         {priceLabel}
                     </p>
                 </div>
@@ -121,6 +121,11 @@ export function HomePortfolioCategories({ blocks, categoryTitles: categoryTitles
                                     <Card className="h-full border-border/60 bg-card/90 py-0 transition hover:border-brand/35 hover:shadow-md dark:bg-card/50">
                                         <CardContent className="space-y-2 p-3 sm:space-y-1.5 sm:p-2.5">
                                             {imageBlock(project.image_path, priceLabel)}
+                                            {priceLabel ? (
+                                                <p className="text-lg font-bold leading-none tracking-tight text-brand tabular-nums sm:hidden dark:text-sky-300">
+                                                    {priceLabel}
+                                                </p>
+                                            ) : null}
                                             <div className="space-y-1">
                                                 <h3 className="line-clamp-2 text-base font-semibold leading-snug text-foreground group-hover:text-brand sm:text-sm">
                                                     {project.title}

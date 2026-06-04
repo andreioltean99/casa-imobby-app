@@ -22,6 +22,7 @@ import { LeadOfferModal } from '@/components/public/LeadOfferModal';
 import { Footer } from '@/components/public/Footer';
 import { PublicSeoHead } from '@/components/public/PublicSeoHead';
 import { PROPERTIES_INDEX_PATH } from '@/lib/public-properties-path';
+import { resolveAppOrigin } from '@/lib/site-origin';
 
 type Props = {
     showTestimonialsSection?: boolean;
@@ -50,8 +51,7 @@ export default function PublicHome({
         (props.translations?.portfolio as Record<string, string> | undefined) ??
         {};
     const viewAllLabel = tPortfolio.view_all ?? 'View full unit list';
-    const appUrl =
-        (props.appUrl ?? '').replace(/\/+$/, '') || 'https://casa-imobby.ro';
+    const appUrl = resolveAppOrigin(props.appUrl);
 
     return (
         <>
@@ -71,6 +71,11 @@ export default function PublicHome({
                         '@type': 'WebSite',
                         name: 'Casa Imobby',
                         url: `${appUrl}/`,
+                        potentialAction: {
+                            '@type': 'SearchAction',
+                            target: `${appUrl}/proprietati?q={search_term_string}`,
+                            'query-input': 'required name=search_term_string',
+                        },
                     },
                 ]}
             />

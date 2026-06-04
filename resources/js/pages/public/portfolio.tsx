@@ -132,6 +132,10 @@ export default function PortfolioPage({
                         <div className="flex flex-col gap-2 sm:flex-row">
                             <input
                                 name="q"
+                                type="search"
+                                inputMode="search"
+                                enterKeyHint="search"
+                                autoComplete="off"
                                 defaultValue={filters.q ?? ''}
                                 placeholder={
                                     (tPortfolio.filters_keyword_placeholder as string | undefined) ??

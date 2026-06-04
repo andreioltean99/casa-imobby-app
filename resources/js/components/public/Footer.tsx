@@ -18,8 +18,8 @@ export function Footer() {
     return (
         <footer className="border-t border-border/60 bg-background/90 dark:bg-[#0c1520]">
             <div
-                className="mx-auto flex flex-col gap-4 px-4 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:max-w-6xl lg:px-8">
-                <div className="flex flex-wrap items-center gap-3">
+                className="mx-auto flex flex-col items-center gap-4 px-4 py-6 text-center text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:text-left sm:px-6 lg:max-w-6xl lg:px-8">
+                <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
                     <span>© {new Date().getFullYear()} {siteName}</span>
                     <span className="hidden h-1 w-1 rounded-full bg-muted-foreground/40 sm:inline-block" />
                     <a href="/terms" className="hover:text-foreground">
@@ -30,14 +30,14 @@ export function Footer() {
                         {tFooter.privacy ?? 'Privacy Policy'}
                     </a>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex justify-center gap-3 sm:justify-end">
                     <a href="/login" className="hover:text-foreground">
                         {tFooter.admin ?? 'Admin'}
                     </a>
                 </div>
             </div>
-            <div className="mx-auto flex flex-col items-start gap-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:max-w-6xl lg:px-8">
-                <div>
+            <div className="mx-auto flex flex-col items-center gap-3 px-4 pb-6 text-center text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-6 sm:text-left lg:max-w-6xl lg:px-8">
+                <div className="flex flex-wrap items-center justify-center">
                     <a style={{margin: 0, lineHeight: 1, padding: 0, textDecoration: 'none'}}
                        href="https://anpc.ro/ce-este-sal/" target="_blank" rel="nofollow">
                         <img style={{display: 'inline-block', border:0, width: 150, margin:5}}
@@ -51,7 +51,7 @@ export function Footer() {
                              alt="Solutionarea Online a Litigiilor" />
                     </a>
                 </div>
-                <div>
+                <div className="flex justify-center sm:justify-end">
                     <a style={{margin: 0, lineHeight: 1, padding: 0, textDecoration: 'none'}}
                        href="https://aao-soft.com" target="_blank" rel="nofollow">
                         <img

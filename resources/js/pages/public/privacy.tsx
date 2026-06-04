@@ -9,5 +9,5 @@ type Props = {
 };
 
 export default function PrivacyPage({ page }: Props) {
-    return <LegalPageShell page={page} />;
+    return <LegalPageShell page={page} canonicalPath="/privacy" />;
 }

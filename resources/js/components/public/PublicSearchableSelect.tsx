@@ -1,4 +1,3 @@
-import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileFilterSelect } from '@/components/public/MobileFilterSelect';
 import {
     SearchableFilterSelect,
@@ -27,26 +26,22 @@ export function PublicSearchableSelect({
     noOptionsMessage = 'No matching options',
     anyOptionLabel,
 }: Props) {
-    const isMobile = useIsMobile();
-
     const selectOptions = options.filter((option) => option.value !== '');
 
-    if (isMobile) {
-        return (
-            <MobileFilterSelect
-                inputId={inputId}
-                label={label}
-                value={value}
-                onChange={onChange}
-                options={selectOptions}
-                placeholder={placeholder ?? anyOptionLabel}
-                noOptionsMessage={noOptionsMessage}
-                clearLabel={anyOptionLabel}
-            />
-        );
-    }
+    const mobile = (
+        <MobileFilterSelect
+            inputId={inputId}
+            label={label}
+            value={value}
+            onChange={onChange}
+            options={selectOptions}
+            placeholder={placeholder ?? anyOptionLabel}
+            noOptionsMessage={noOptionsMessage}
+            clearLabel={anyOptionLabel}
+        />
+    );
 
-    return (
+    const desktop = (
         <SearchableFilterSelect
             id={inputId}
             label={label}
@@ -56,5 +51,12 @@ export function PublicSearchableSelect({
             placeholder={placeholder ?? anyOptionLabel}
             noResultsLabel={noOptionsMessage}
         />
+    );
+
+    return (
+        <>
+            <div className="md:hidden">{mobile}</div>
+            <div className="hidden md:block">{desktop}</div>
+        </>
     );
 }

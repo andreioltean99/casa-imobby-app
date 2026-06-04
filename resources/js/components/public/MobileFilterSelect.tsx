@@ -107,6 +107,7 @@ export function MobileFilterSelect({
             <Sheet open={open} onOpenChange={closeSheet}>
                 <SheetContent
                     side="bottom"
+                    onOpenAutoFocus={(event) => event.preventDefault()}
                     className="flex max-h-[min(88vh,720px)] flex-col gap-0 rounded-t-2xl p-0 [&>button]:top-3.5 [&>button]:right-3.5"
                 >
                     <SheetHeader className="border-b border-border/70 px-4 py-4 pr-12 text-left">
@@ -114,17 +115,20 @@ export function MobileFilterSelect({
                             {label || placeholder || 'Selectează'}
                         </SheetTitle>
                     </SheetHeader>
-                    <div className="border-b border-border/60 p-3">
-                        <input
-                            type="search"
-                            enterKeyHint="search"
-                            value={query}
-                            onChange={(event) => setQuery(event.target.value)}
-                            placeholder={placeholder}
-                            className="h-11 w-full rounded-md border border-border bg-background px-3 text-base outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-brand"
-                            autoComplete="off"
-                        />
-                    </div>
+                    {options.length > 10 ? (
+                        <div className="border-b border-border/60 p-3">
+                            <input
+                                type="text"
+                                inputMode="search"
+                                enterKeyHint="search"
+                                value={query}
+                                onChange={(event) => setQuery(event.target.value)}
+                                placeholder={placeholder}
+                                className="h-11 w-full rounded-md border border-border bg-background px-3 text-base outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-brand"
+                                autoComplete="off"
+                            />
+                        </div>
+                    ) : null}
                     <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
                         {clearLabel ? (
                             <button

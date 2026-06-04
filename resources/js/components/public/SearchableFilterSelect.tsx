@@ -5,7 +5,6 @@ import {
     ComboboxOption,
     ComboboxOptions,
 } from '@headlessui/react';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { ChevronsUpDown } from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Label } from '@/components/ui/label';
@@ -69,7 +68,6 @@ export function SearchableFilterSelect({
     leadingIcon,
     inlineEnd,
 }: Props) {
-    const isMobile = useIsMobile();
     const [query, setQuery] = useState('');
     const [isFocused, setIsFocused] = useState(false);
 
@@ -215,7 +213,7 @@ export function SearchableFilterSelect({
 
                         <ComboboxOptions
                             portal
-                            modal={isMobile}
+                            modal={false}
                             anchor="bottom start"
                             transition
                             className={cn(

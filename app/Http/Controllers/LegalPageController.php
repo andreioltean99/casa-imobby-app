@@ -13,11 +13,11 @@ class LegalPageController extends Controller
 
         $defaultsByLocale = [
             'en' => [
-                'title' => 'Terms & Conditions – casa-imobby.ro',
+                'title' => 'Terms & Conditions – agentia-casa-imobby.ro',
                 'body' => '',
             ],
             'ro' => [
-                'title' => 'Termeni și Condiții de Utilizare – casa-imobby.ro',
+                'title' => 'Termeni și Condiții de Utilizare – agentia-casa-imobby.ro',
                 'body' => '',
             ],
         ];
@@ -41,11 +41,11 @@ class LegalPageController extends Controller
 
         $defaultsByLocale = [
             'en' => [
-                'title' => 'Privacy Policy – casa-imobby.ro',
+                'title' => 'Privacy Policy – agentia-casa-imobby.ro',
                 'body' => '',
             ],
             'ro' => [
-                'title' => 'Politica de confidențialitate – casa-imobby.ro',
+                'title' => 'Politica de confidențialitate – agentia-casa-imobby.ro',
                 'body' => '',
             ],
         ];

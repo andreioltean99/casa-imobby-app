@@ -214,7 +214,7 @@ export function PortfolioSection({
                                         {project.title}
                                     </h3>
                                     {formatCardPrice(project.price) ? (
-                                        <p className="text-base font-semibold text-foreground sm:text-sm">
+                                        <p className="text-lg font-bold tracking-tight text-brand tabular-nums sm:text-sm sm:font-semibold sm:text-foreground dark:text-sky-300 sm:dark:text-foreground">
                                             {formatCardPrice(project.price)}
                                         </p>
                                     ) : null}

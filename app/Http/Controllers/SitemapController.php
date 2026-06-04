@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\PortfolioItem;
+use App\Support\SiteOrigin;
 use Illuminate\Http\Response;
 
 class SitemapController extends Controller
 {
     public function __invoke(): Response
     {
-        $baseUrl = rtrim((string) config('app.url', ''), '/');
+        $baseUrl = SiteOrigin::resolve();
 
         $staticUrls = [
             '/',

@@ -412,7 +412,7 @@ return [
     'landing_hero' => [
         'meta' => 'Hero pagină principală – Casa Imobby',
         'title' => 'Hero pagină principală',
-        'intro' => 'Primul ecran pe casa-imobby.ro: titlu, butoane CTA și pașii „cum lucrăm cu tine”.',
+        'intro' => 'Primul ecran pe agentia-casa-imobby.ro: titlu, butoane CTA și pașii „cum lucrăm cu tine”.',
         'form' => [
             'eyebrow' => 'Etichetă sus (eyebrow)',
             'main_title' => 'Titlu',
@@ -494,9 +494,9 @@ return [
         'terms_meta' => 'Termeni și condiții – Casa Imobby',
         'privacy_meta' => 'Politica de confidențialitate – Casa Imobby',
         'terms_title' => 'Termeni și condiții',
-        'terms_intro' => 'Editează pagina publică de termeni și condiții afișată pe casa-imobby.ro.',
+        'terms_intro' => 'Editează pagina publică de termeni și condiții afișată pe agentia-casa-imobby.ro.',
         'privacy_title' => 'Politica de confidențialitate',
-        'privacy_intro' => 'Editează pagina publică de politică de confidențialitate afișată pe casa-imobby.ro.',
+        'privacy_intro' => 'Editează pagina publică de politică de confidențialitate afișată pe agentia-casa-imobby.ro.',
         'content_label' => 'Conținut',
         'save' => 'Salvează modificările',
     ],

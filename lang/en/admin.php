@@ -412,7 +412,7 @@ return [
     'landing_hero' => [
         'meta' => 'Homepage hero – Casa Imobby',
         'title' => 'Homepage hero',
-        'intro' => 'First screen on casa-imobby.ro: headline, CTAs, and the “how we work” steps.',
+        'intro' => 'First screen on agentia-casa-imobby.ro: headline, CTAs, and the “how we work” steps.',
         'form' => [
             'eyebrow' => 'Eyebrow',
             'main_title' => 'Title',
@@ -494,9 +494,9 @@ return [
         'terms_meta' => 'Terms & Conditions – Casa Imobby',
         'privacy_meta' => 'Privacy Policy – Casa Imobby',
         'terms_title' => 'Terms & Conditions',
-        'terms_intro' => 'Edit the public terms and conditions page shown on casa-imobby.ro.',
+        'terms_intro' => 'Edit the public terms and conditions page shown on agentia-casa-imobby.ro.',
         'privacy_title' => 'Privacy Policy',
-        'privacy_intro' => 'Edit the public privacy policy page shown on casa-imobby.ro.',
+        'privacy_intro' => 'Edit the public privacy policy page shown on agentia-casa-imobby.ro.',
         'content_label' => 'Content',
         'save' => 'Save changes',
     ],

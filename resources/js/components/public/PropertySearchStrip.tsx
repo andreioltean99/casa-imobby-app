@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { MobileFilterSelect } from '@/components/public/MobileFilterSelect';
 import { SearchableFilterSelect, type SearchableFilterOption } from '@/components/public/SearchableFilterSelect';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { propertiesIndexUrl } from '@/lib/public-properties-path';
 
@@ -84,8 +83,6 @@ export function PropertySearchStrip() {
     const raw = pageProps.translations
         ?.property_search;
     const t = { ...defaultCopy, ...raw };
-    const isMobile = useIsMobile();
-
     const [deal, setDeal] = useState<Deal>('sale');
     const [propertyType, setPropertyType] = useState<string | null>(null);
     const [city, setCity] = useState('any');
@@ -213,34 +210,33 @@ export function PropertySearchStrip() {
                 </div>
 
                 <div className="w-full space-y-3">
-                    {isMobile ? (
-                        <>
-                            <MobileFilterSelect
-                                inputId="property-search-city"
-                                label={t.city_label}
-                                value={city === 'any' ? '' : city}
-                                onChange={(next) => setCity(next || 'any')}
-                                options={cityZones.map((zone) => ({
-                                    value: zone,
-                                    label: zone,
-                                }))}
-                                placeholder={t.filter_city_placeholder}
-                                noOptionsMessage={t.filter_no_results}
-                                clearLabel={t.city_any}
-                            />
-                            <Button
-                                asChild
-                                className="h-12 w-full touch-manipulation gap-1.5 rounded-lg text-base font-semibold"
-                            >
-                                <Link href={portfolioHref} prefetch>
-                                    <Search className="size-4 opacity-90" />
-                                    {t.submit_search}
-                                </Link>
-                            </Button>
-                        </>
-                    ) : (
+                    <div className="space-y-3 md:hidden">
+                        <MobileFilterSelect
+                            inputId="property-search-city"
+                            label={t.city_label}
+                            value={city === 'any' ? '' : city}
+                            onChange={(next) => setCity(next || 'any')}
+                            options={cityZones.map((zone) => ({
+                                value: zone,
+                                label: zone,
+                            }))}
+                            placeholder={t.filter_city_placeholder}
+                            noOptionsMessage={t.filter_no_results}
+                            clearLabel={t.city_any}
+                        />
+                        <Button
+                            asChild
+                            className="h-12 w-full touch-manipulation gap-1.5 rounded-lg text-base font-semibold"
+                        >
+                            <Link href={portfolioHref} prefetch>
+                                <Search className="size-4 opacity-90" />
+                                {t.submit_search}
+                            </Link>
+                        </Button>
+                    </div>
+                    <div className="hidden md:block">
                         <SearchableFilterSelect
-                            id="property-search-city"
+                            id="property-search-city-desktop"
                             label={t.city_label}
                             value={city}
                             onValueChange={setCity}
@@ -262,7 +258,7 @@ export function PropertySearchStrip() {
                                 </Button>
                             }
                         />
-                    )}
+                    </div>
                 </div>
             </div>
         </section>

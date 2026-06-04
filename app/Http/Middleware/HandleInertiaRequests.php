@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\SiteOrigin;
 use App\Models\ContactSubmission;
 use App\Models\LeadSubmission;
 use App\Models\PortfolioListingCategory;
@@ -42,7 +43,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
-            'appUrl' => rtrim((string) config('app.url', $request->getSchemeAndHttpHost()), '/'),
+            'appUrl' => SiteOrigin::resolve(),
             'locale' => app()->getLocale(),
             'availableLocales' => (array) config('app.available_locales', ['ro', 'en']),
             'websiteUi' => fn () => [

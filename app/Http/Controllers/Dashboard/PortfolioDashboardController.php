@@ -115,7 +115,7 @@ class PortfolioDashboardController extends Controller
 
         try {
             $response = Http::withHeaders([
-                'User-Agent' => 'Mozilla/5.0 (compatible; CasaImobbyBot/1.0; +https://casa-imobby.ro)',
+                'User-Agent' => 'Mozilla/5.0 (compatible; CasaImobbyBot/1.0; +https://agentia-casa-imobby.ro)',
                 'Accept-Language' => 'ro-RO,ro;q=0.9,en;q=0.8',
             ])
                 ->timeout(20)

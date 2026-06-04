@@ -12,9 +12,10 @@ type LegalPageData = {
 
 type Props = {
     page: LegalPageData;
+    canonicalPath: string;
 };
 
-export function LegalPageShell({ page }: Props) {
+export function LegalPageShell({ page, canonicalPath }: Props) {
     const { locale } = usePage().props as { locale?: string };
     const updatedLabel =
         locale === 'en' ? 'Last updated:' : 'Ultima actualizare:';
@@ -22,7 +23,11 @@ export function LegalPageShell({ page }: Props) {
 
     return (
         <>
-            <PublicSeoHead title={page.title} description={page.title} />
+            <PublicSeoHead
+                title={page.title}
+                description={page.title}
+                canonicalPath={canonicalPath}
+            />
             <div className="min-h-screen bg-gradient-to-b from-background via-background to-neutral-50 text-foreground dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-900">
                 <Header />
 

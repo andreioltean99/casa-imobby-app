@@ -534,6 +534,7 @@ export function PropertiesFiltersSidebar(props: Props) {
                     </SheetTrigger>
                     <SheetContent
                         side="bottom"
+                        onOpenAutoFocus={(event) => event.preventDefault()}
                         className="flex max-h-[min(92vh,760px)] flex-col gap-0 rounded-t-2xl p-0 [&>button]:top-3.5 [&>button]:right-3.5"
                     >
                         <SheetHeader className="border-b border-border/70 px-4 py-4 pr-12 text-left">

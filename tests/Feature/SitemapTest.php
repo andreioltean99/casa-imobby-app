@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\PortfolioItem;
+use App\Support\SiteOrigin;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class SitemapTest extends TestCase
@@ -24,5 +26,32 @@ class SitemapTest extends TestCase
         $response->assertSee('/proprietati', false);
         $response->assertSee('/contact', false);
         $response->assertSee('/portfolio/'.$item->publicUrlSegment(), false);
+    }
+
+    public function test_sitemap_uses_canonical_origin_in_production_when_app_url_is_local(): void
+    {
+        $this->app->detectEnvironment(fn () => 'production');
+        Config::set('app.url', 'http://localhost');
+
+        $response = $this->get('/sitemap.xml');
+
+        $response->assertOk();
+        $response->assertSee(SiteOrigin::CANONICAL.'/proprietati', false);
+    }
+
+    public function test_site_origin_keeps_local_url_outside_production(): void
+    {
+        $this->app->detectEnvironment(fn () => 'local');
+        Config::set('app.url', 'http://localhost');
+
+        $this->assertSame('http://localhost', SiteOrigin::resolve());
+    }
+
+    public function test_site_origin_uses_configured_production_url(): void
+    {
+        $this->app->detectEnvironment(fn () => 'production');
+        Config::set('app.url', 'https://agentia-casa-imobby.ro');
+
+        $this->assertSame('https://agentia-casa-imobby.ro', SiteOrigin::resolve());
     }
 }

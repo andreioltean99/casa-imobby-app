@@ -397,6 +397,15 @@ export default function PortfolioProjectPage({
                     description: pageDescription,
                     availability: 'https://schema.org/InStock',
                     priceCurrency: 'EUR',
+                    ...(price !== null &&
+                    price !== undefined &&
+                    price !== '' &&
+                    !Number.isNaN(Number(price))
+                        ? { price: Number(price) }
+                        : {}),
+                    ...(image_path
+                        ? { image: `/storage/${image_path}` }
+                        : {}),
                     url: canonicalPath,
                 }}
             />
@@ -439,6 +448,11 @@ export default function PortfolioProjectPage({
                                 <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl lg:text-[2rem] lg:leading-tight">
                                     {title}
                                 </h1>
+                                {formattedPrice ? (
+                                    <p className="text-2xl font-bold tracking-tight text-brand tabular-nums sm:hidden dark:text-sky-300">
+                                        {formattedPrice}
+                                    </p>
+                                ) : null}
                                 {leadText ? (
                                     <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
                                         {leadText}
@@ -458,7 +472,7 @@ export default function PortfolioProjectPage({
                                         </span>
                                     ) : null}
                                     {formattedPrice ? (
-                                        <span>
+                                        <span className="hidden sm:inline">
                                             <span className="font-medium text-foreground">
                                                 {(tPortfolio.listing_price_label ??
                                                     'Price') + ': '}
