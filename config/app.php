@@ -56,6 +56,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Public canonical site URL (SEO, sitemap, Open Graph)
+    |--------------------------------------------------------------------------
+    |
+    | In production this is always used for public-facing absolute URLs,
+    | regardless of APP_URL (e.g. when APP_URL points at a staging host).
+    |
+    */
+
+    'canonical_url' => env('CANONICAL_URL', 'https://agentia-casa-imobby.ro'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

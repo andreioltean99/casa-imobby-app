@@ -39,6 +39,18 @@ class SitemapTest extends TestCase
         $response->assertSee(SiteOrigin::CANONICAL.'/proprietati', false);
     }
 
+    public function test_sitemap_uses_canonical_origin_in_production_when_app_url_is_staging_host(): void
+    {
+        $this->app->detectEnvironment(fn () => 'production');
+        Config::set('app.url', 'http://casa-imobby.aao-soft.com');
+
+        $response = $this->get('/sitemap.xml');
+
+        $response->assertOk();
+        $response->assertSee(SiteOrigin::CANONICAL.'/proprietati', false);
+        $response->assertDontSee('casa-imobby.aao-soft.com', false);
+    }
+
     public function test_site_origin_keeps_local_url_outside_production(): void
     {
         $this->app->detectEnvironment(fn () => 'local');
@@ -47,11 +59,19 @@ class SitemapTest extends TestCase
         $this->assertSame('http://localhost', SiteOrigin::resolve());
     }
 
-    public function test_site_origin_uses_configured_production_url(): void
+    public function test_site_origin_uses_canonical_in_production_even_when_app_url_matches(): void
     {
         $this->app->detectEnvironment(fn () => 'production');
         Config::set('app.url', 'https://agentia-casa-imobby.ro');
 
-        $this->assertSame('https://agentia-casa-imobby.ro', SiteOrigin::resolve());
+        $this->assertSame(SiteOrigin::CANONICAL, SiteOrigin::resolve());
+    }
+
+    public function test_site_origin_uses_staging_app_url_outside_production(): void
+    {
+        $this->app->detectEnvironment(fn () => 'local');
+        Config::set('app.url', 'http://casa-imobby.aao-soft.com');
+
+        $this->assertSame('http://casa-imobby.aao-soft.com', SiteOrigin::resolve());
     }
 }

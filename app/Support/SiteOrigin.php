@@ -6,31 +6,24 @@ class SiteOrigin
 {
     public const CANONICAL = 'https://agentia-casa-imobby.ro';
 
+    /**
+     * Absolute origin for public SEO URLs (sitemap, canonical, JSON-LD, Inertia appUrl).
+     */
     public static function resolve(): string
     {
+        if (app()->environment('production')) {
+            return self::canonicalUrl();
+        }
+
         $configured = rtrim((string) config('app.url', ''), '/');
 
-        if ($configured === '') {
-            return self::CANONICAL;
-        }
-
-        if (app()->environment('production') && self::isLocalOrigin($configured)) {
-            return self::CANONICAL;
-        }
-
-        return $configured;
+        return $configured !== '' ? $configured : self::canonicalUrl();
     }
 
-    public static function isLocalOrigin(string $url): bool
+    public static function canonicalUrl(): string
     {
-        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        $url = rtrim((string) config('app.canonical_url', self::CANONICAL), '/');
 
-        if ($host === '') {
-            return true;
-        }
-
-        return in_array($host, ['localhost', '127.0.0.1', '[::1]'], true)
-            || str_ends_with($host, '.test')
-            || str_ends_with($host, '.local');
+        return $url !== '' ? $url : self::CANONICAL;
     }
 }
