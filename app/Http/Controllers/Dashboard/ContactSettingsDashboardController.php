@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactSettings;
+use App\Support\UploadRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -63,7 +64,7 @@ class ContactSettingsDashboardController extends Controller
             'contact_person_name' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:64'],
             'map_placeholder' => ['nullable', 'string', 'max:255'],
-            'contact_person_photo' => ['nullable', 'image', 'max:4096'],
+            'contact_person_photo' => UploadRules::nullableImage(),
         ]);
 
         $contact = ContactSettings::query()->firstOrCreate(

@@ -21,14 +21,14 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_sqlite pdo_mysql pcntl gd \
     && rm -rf /var/lib/apt/lists/*
 
-# PHP upload limits (Binshops image uploads can silently fail if too small)
+# PHP upload limits (must match config/uploads.php and nginx client_max_body_size)
 RUN printf "%s\n" \
     "file_uploads=On" \
-    "upload_max_filesize=64M" \
-    "post_max_size=64M" \
+    "upload_max_filesize=1024M" \
+    "post_max_size=1024M" \
     "memory_limit=2048M" \
-    "max_execution_time=120" \
-    "max_input_time=120" \
+    "max_execution_time=3600" \
+    "max_input_time=3600" \
     > /usr/local/etc/php/conf.d/99-uploads.ini
 
 # Install Composer

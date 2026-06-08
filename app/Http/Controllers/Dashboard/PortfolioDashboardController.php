@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Support\UploadRules;
 use App\Models\PortfolioItem;
 use App\Models\PortfolioItemImage;
 use App\Models\PortfolioListingCategory;
@@ -310,7 +311,7 @@ class PortfolioDashboardController extends Controller
 
         $validator = Validator::make(
             ['gallery_files' => $files],
-            ['gallery_files.*' => ['image', 'max:4096']],
+            ['gallery_files.*' => UploadRules::image()],
         );
 
         if ($validator->fails()) {
@@ -392,9 +393,9 @@ class PortfolioDashboardController extends Controller
             'duration' => ['nullable', 'string', 'max:100'],
             'is_published' => ['sometimes', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
-            'image' => ['nullable', 'image', 'max:4096'],
+            'image' => UploadRules::nullableImage(),
             'gallery_images' => ['nullable', 'array'],
-            'gallery_images.*' => ['image', 'max:4096'],
+            'gallery_images.*' => UploadRules::image(),
             'property_filters_json' => ['nullable', 'string', 'max:65535'],
             'external_listing_ref' => ['nullable', 'string', 'max:120'],
             'external_storia_url' => ['nullable', 'string', 'max:2048', 'url'],

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\Testimonial;
 use App\Models\TestimonialSectionSettings;
+use App\Support\UploadRules;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -107,7 +108,7 @@ class TestimonialDashboardController extends Controller
             'quote' => ['required', 'string'],
             'is_published' => ['sometimes', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
-            'image' => ['nullable', 'image', 'max:4096'],
+            'image' => UploadRules::nullableImage(),
         ]);
     }
 }
